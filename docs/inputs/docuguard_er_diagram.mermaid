@@ -1,0 +1,256 @@
+erDiagram
+
+    DEPARTMENTS {
+        int department_id PK
+        string department_name UK
+        string description
+    }
+
+    ROLES {
+        int role_id PK
+        string role_name UK "Admin, Doctor, Nurse, Staff"
+        string description
+    }
+
+    PERMISSIONS {
+        int permission_id PK
+        string permission_name UK "e.g. VIEW_DOC, UPLOAD_DOC, APPROVE_DOC"
+        string description
+    }
+
+    ROLE_PERMISSIONS {
+        int role_id PK,FK
+        int permission_id PK,FK
+        timestamp assigned_at
+    }
+
+    USERS {
+        int user_id PK
+        string full_name
+        string email UK
+        string password_hash
+        int role_id FK
+        int department_id FK
+        string employment_status
+        string account_status "active, suspended, disabled"
+        timestamp created_at
+        timestamp last_login_at
+    }
+
+    DOCUMENT_CATEGORIES {
+        int category_id PK
+        string category_name UK "Policy, SOP, Privacy, Safety, Compliance"
+        string description
+    }
+
+    DOCUMENTS {
+        int document_id PK
+        string title
+        int category_id FK
+        int owner_id FK
+        int current_version_id FK "nullable, points to DOCUMENT_VERSIONS"
+        string mongo_doc_id UK "reference into MongoDB"
+        string document_status "draft, active, under_review, retired"
+        timestamp created_at
+        timestamp updated_at
+    }
+
+    DOCUMENT_VERSIONS {
+        int version_id PK
+        int document_id FK
+        int version_number UK "unique together with document_id"
+        string file_path
+        string mongo_content_id UK "reference into MongoDB content store"
+        string vector_id UK "reference into Vector DB embedding"
+        string checksum
+        int uploaded_by FK
+        int approved_by FK "nullable, must differ from uploaded_by (maker-checker)"
+        timestamp uploaded_at
+        timestamp approved_at
+        date effective_date
+        date expiry_date
+        string version_status "pending_review, approved, superseded, expired"
+    }
+
+    DOCUMENT_PERMISSIONS {
+        int doc_permission_id PK
+        int document_id FK
+        int role_id FK
+        string access_level "read, write, approve, admin"
+        int granted_by FK
+        timestamp granted_at
+        timestamp revoked_at "nullable"
+    }
+
+    ACCESS_LOGS {
+        bigint log_id PK
+        int user_id FK
+        int document_id FK
+        int version_id FK
+        int override_id FK "nullable, set for break-glass access"
+        string action "view, download, upload, edit, approve"
+        boolean is_break_glass
+        string ip_address
+        timestamp accessed_at
+        string prev_hash "hash of previous row in chain"
+        string row_hash UK "SHA-256 over prev_hash + row contents"
+    }
+
+    DOCUMENT_CHUNKS {
+        bigint chunk_id PK
+        int version_id FK
+        int chunk_index UK "unique together with version_id"
+        string mongo_chunk_id UK "reference into MongoDB chunk text"
+        vector embedding "384 dimensions, HNSW cosine index"
+        tsvector tsv "full-text lexemes, GIN index"
+    }
+
+    AUDIT_INTEGRITY_CHECKS {
+        int check_id PK
+        int run_by FK
+        timestamp run_at
+        bigint rows_verified
+        string result "intact, tampered"
+        bigint first_broken_log_id "nullable"
+    }
+
+    SEARCH_LOGS {
+        int search_id PK
+        int user_id FK
+        string query_text
+        string search_type "keyword, semantic, hybrid"
+        int results_count
+        timestamp searched_at
+    }
+
+    SIMILAR_DOCUMENTS {
+        int similarity_id PK
+        int document_id_1 FK
+        int document_id_2 FK
+        float similarity_score
+        string detection_method "vector_cosine, keyword_overlap"
+        timestamp detected_at
+    }
+
+    NOTIFICATIONS {
+        int notification_id PK
+        int user_id FK
+        int document_id FK
+        string notification_type "expiry_warning, approval_needed, new_version, ack_required, ack_overdue, break_glass_review"
+        string message
+        boolean is_read
+        timestamp created_at
+    }
+
+    POLICY_ASSIGNMENTS {
+        int assignment_id PK
+        int document_id FK
+        int target_role_id FK "nullable"
+        int target_department_id FK "nullable, at least one target required"
+        int assigned_by FK
+        timestamp assigned_at
+        date due_date "acknowledgment deadline"
+    }
+
+    ACKNOWLEDGMENTS {
+        bigint ack_id PK
+        int assignment_id FK
+        int user_id FK
+        int version_id FK "acknowledgment is per version"
+        timestamp acknowledged_at
+    }
+
+    REGULATIONS {
+        int regulation_id PK
+        string regulation_name UK "NABH, JCI, HIPAA, DPDP Act"
+        string issuing_body
+        string description
+    }
+
+    CONTROLS {
+        int control_id PK
+        int regulation_id FK
+        string control_code "unique within a regulation"
+        string title
+        string description
+        boolean is_mandatory
+    }
+
+    DOCUMENT_CONTROL_MAP {
+        int document_id PK,FK
+        int control_id PK,FK
+        int mapped_by FK
+        timestamp mapped_at
+    }
+
+    ACCESS_OVERRIDES {
+        int override_id PK
+        int user_id FK "requester"
+        int document_id FK
+        string justification "mandatory, min length enforced"
+        timestamp granted_at
+        timestamp expires_at "must be after granted_at"
+        string status "active, expired, reviewed"
+        int reviewed_by FK "nullable"
+        timestamp reviewed_at "nullable"
+        string review_outcome "justified, unjustified, nullable"
+    }
+
+    DOCUMENT_REFERENCES {
+        int reference_id PK
+        int source_document_id FK
+        int target_document_id FK
+        string reference_type "cites, depends_on, supersedes"
+        timestamp created_at
+    }
+
+    DEPARTMENTS |o--o{ USERS : "employs"
+    ROLES ||--o{ USERS : "assigned to"
+    ROLES ||--o{ ROLE_PERMISSIONS : "has"
+    PERMISSIONS ||--o{ ROLE_PERMISSIONS : "included in"
+
+    DOCUMENT_CATEGORIES ||--o{ DOCUMENTS : "classifies"
+    USERS ||--o{ DOCUMENTS : "owns"
+    DOCUMENTS ||--o{ DOCUMENT_VERSIONS : "has"
+    DOCUMENT_VERSIONS |o--o| DOCUMENTS : "is current version of"
+    DOCUMENT_VERSIONS ||--o{ DOCUMENT_CHUNKS : "split into"
+    USERS ||--o{ DOCUMENT_VERSIONS : "uploads"
+    USERS |o--o{ DOCUMENT_VERSIONS : "approves"
+
+    DOCUMENTS ||--o{ DOCUMENT_PERMISSIONS : "restricted by"
+    ROLES ||--o{ DOCUMENT_PERMISSIONS : "granted access via"
+    USERS ||--o{ DOCUMENT_PERMISSIONS : "grants"
+
+    USERS ||--o{ ACCESS_LOGS : "performs"
+    DOCUMENTS ||--o{ ACCESS_LOGS : "logged for"
+    DOCUMENT_VERSIONS |o--o{ ACCESS_LOGS : "version accessed"
+    ACCESS_OVERRIDES |o--o{ ACCESS_LOGS : "tags emergency access"
+    USERS ||--o{ AUDIT_INTEGRITY_CHECKS : "runs"
+
+    USERS ||--o{ SEARCH_LOGS : "executes"
+
+    DOCUMENTS ||--o{ SIMILAR_DOCUMENTS : "compared as source"
+    DOCUMENTS ||--o{ SIMILAR_DOCUMENTS : "compared as match"
+
+    USERS ||--o{ NOTIFICATIONS : "receives"
+    DOCUMENTS |o--o{ NOTIFICATIONS : "triggers"
+
+    DOCUMENTS ||--o{ POLICY_ASSIGNMENTS : "assigned for reading"
+    ROLES |o--o{ POLICY_ASSIGNMENTS : "targeted by role"
+    DEPARTMENTS |o--o{ POLICY_ASSIGNMENTS : "targeted by department"
+    USERS ||--o{ POLICY_ASSIGNMENTS : "creates"
+    POLICY_ASSIGNMENTS ||--o{ ACKNOWLEDGMENTS : "fulfilled by"
+    USERS ||--o{ ACKNOWLEDGMENTS : "acknowledges"
+    DOCUMENT_VERSIONS ||--o{ ACKNOWLEDGMENTS : "acknowledged version"
+
+    REGULATIONS ||--o{ CONTROLS : "defines"
+    CONTROLS ||--o{ DOCUMENT_CONTROL_MAP : "satisfied by"
+    DOCUMENTS ||--o{ DOCUMENT_CONTROL_MAP : "covers"
+    USERS ||--o{ DOCUMENT_CONTROL_MAP : "maps"
+
+    USERS ||--o{ ACCESS_OVERRIDES : "requests"
+    USERS |o--o{ ACCESS_OVERRIDES : "reviews"
+    DOCUMENTS ||--o{ ACCESS_OVERRIDES : "emergency access to"
+
+    DOCUMENTS ||--o{ DOCUMENT_REFERENCES : "references as source"
+    DOCUMENTS ||--o{ DOCUMENT_REFERENCES : "referenced as target"
