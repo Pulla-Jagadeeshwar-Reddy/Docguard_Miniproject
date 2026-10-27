@@ -24,7 +24,29 @@ All credentials and connection settings are read from `.env`. The committed `.en
 
 ## Database setup
 
-Database migrations, seed instructions, and demo accounts will be documented after the SQL and demo-data phases. No demo accounts exist in the setup scaffold.
+Start PostgreSQL and MongoDB with `docker compose up -d`; PostgreSQL is published on host port `5433` to avoid a native Windows PostgreSQL service on `5432`.
+
+- `npm run db:apply` applies the numbered SQL files in filename order to an empty schema.
+- `npm run db:rebuild` drops and recreates every object in the database's `public` schema, then reapplies migrations. Use only with the dedicated local project database; it preserves Docker volumes but removes their schema objects.
+- `npm run db:test` runs the SQL tests against an already-migrated schema.
+- `npm run db:rebuild-test` rebuilds the schema and runs the SQL tests.
+
+Pull's current SQL slice provides 14 core tables, core views/functions/triggers and seed accounts. Push's eight search/compliance tables and their SQL files are separate work. The SQL runner will include those files once they are added.
+
+Seeded fake demo accounts (passwords are stored as salted bcrypt hashes at cost 12):
+
+| Role | Email | Password |
+| --- | --- | --- |
+| Admin | `admin1@docuguard.local` | `DG-Demo-Admin-01!` |
+| Admin | `admin2@docuguard.local` | `DG-Demo-Admin-02!` |
+| Doctor | `doctor1@docuguard.local` | `DG-Demo-Doctor-01!` |
+| Doctor | `doctor2@docuguard.local` | `DG-Demo-Doctor-02!` |
+| Nurse | `nurse1@docuguard.local` | `DG-Demo-Nurse-01!` |
+| Nurse | `nurse2@docuguard.local` | `DG-Demo-Nurse-02!` |
+| Staff | `staff1@docuguard.local` | `DG-Demo-Staff-01!` |
+| Staff | `staff2@docuguard.local` | `DG-Demo-Staff-02!` |
+
+These credentials are for the synthetic local demo only. `docuguard_runtime` is the separate, non-login application role; Phase 2 will enable it for the backend after auth and connection configuration are implemented. The current health-check configuration still uses the Compose administrator account.
 
 ## Troubleshooting
 
