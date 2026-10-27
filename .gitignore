@@ -6,6 +6,7 @@
 /DocuGuard Implementation Blueprint.docx
 /docuguard_data_dictionary.md
 /docuguard_er_diagram.mermaid
+/DocuGuard Pull and Push Work Split.md
 node_modules/
 **/node_modules/
 .next/
