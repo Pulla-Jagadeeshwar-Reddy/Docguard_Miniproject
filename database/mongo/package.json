@@ -1,0 +1,5 @@
+{
+  "name": "@docuguard/mongo-scripts",
+  "private": true,
+  "type": "module"
+}
