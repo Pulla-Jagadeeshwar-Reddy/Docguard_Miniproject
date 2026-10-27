@@ -1,8 +1,16 @@
 import type { NextFunction, Request, Response } from "express";
 import { env } from "../config/env.js";
+import multer from "multer";
 
 export function errorHandler(error: unknown, _request: Request, response: Response, _next: NextFunction) {
   if (response.headersSent) return;
+  if (error instanceof multer.MulterError) {
+    const tooLarge = error.code === "LIMIT_FILE_SIZE";
+    response.status(tooLarge ? 413 : 400).json({
+      error: tooLarge ? "Upload must be 20 MB or smaller" : "Upload must be one PDF or DOCX file"
+    });
+    return;
+  }
   const code = typeof error === "object" && error !== null && "code" in error
     ? String(error.code)
     : "";

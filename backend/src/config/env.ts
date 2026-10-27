@@ -1,4 +1,5 @@
 import { config } from "dotenv";
+import { resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 // The workspace root owns the single .env file even when npm starts this package from backend/.
@@ -24,7 +25,8 @@ export const env = {
   frontendOrigin: process.env.FRONTEND_ORIGIN ?? "http://localhost:3000",
   jwtSecret: required("JWT_SECRET"),
   jwtExpiresIn: process.env.JWT_EXPIRES_IN ?? "1h",
-  isProduction: process.env.NODE_ENV === "production"
+  isProduction: process.env.NODE_ENV === "production",
+  uploadDir: resolve(fileURLToPath(new URL("../../../", import.meta.url)), process.env.UPLOAD_DIR ?? "uploads")
 };
 
 if (env.jwtSecret.length < 32) {
