@@ -37,3 +37,9 @@
 
 - The existing PostgreSQL expiry functions remain the source of truth for expiration and warning creation. The API invokes them at startup and every 24 hours; a transaction-scoped advisory lock prevents concurrent API instances from running the sweep simultaneously.
 - Notification reads and updates are scoped by the authenticated user id in SQL. The shared bell shows the latest ten rows and polls once per minute; the database notification table remains the durable inbox.
+
+## Phase 5
+
+- The supplied work split assigns the dependency graph to Pull, while the older blueprint section 18 lists it under Member B. The user's explicit instruction to complete Pull's work-split assignments takes precedence; Push-owned search, acknowledgments, and regulatory pages remain out of this branch.
+- Dependency graph reads, impact analysis, and reference writes are Admin-only as specified by the blueprint API table. Graph traversal treats links as connected relationships and uses a visited-id path; impact follows reverse dependency direction so it lists policies that depend on the selected policy.
+- Dashboard policy counts use the shared status view. Expiring policy rows are filtered with `fn_accessible_document_ids`; Admins see the shared activity view while other roles see only their own access events.
