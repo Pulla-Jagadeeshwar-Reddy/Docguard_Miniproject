@@ -5,7 +5,7 @@
 - The supplied blueprint and rubric were read before implementation. The authoritative ER diagram and data dictionary arrived before coding and are preserved with the rubric and blueprint under `docs/inputs/`. The DOCX blueprint is retained alongside a Markdown conversion.
 - The original supplied attachments remain untouched in the repository root. Their canonical copies in `docs/inputs/` are versioned, and the root originals are ignored to avoid duplicate tracked copies.
 - Use the official MongoDB Node.js driver as requested, despite the blueprint allowing Mongoose.
-- The SQL schema is the 21 relational entities in the ER diagram plus `DOCUMENT_CHUNKS`, which the blueprint explicitly describes as an additional vector/search table (22 total tables).
+- The SQL schema is interpreted as 21 non-vector business tables plus `DOCUMENT_CHUNKS` (22 total). The ER diagram also draws `DOCUMENT_CHUNKS`, so it visually lists all 22 tables; the data dictionary and DDL are the column-level sources of truth.
 - Docker Compose requires credentials from `.env`; no working credentials are embedded in the Compose file.
 - `/health` checks both PostgreSQL and MongoDB and returns 503 if either is unavailable. It does not expose connection errors.
 - The frontend uses Next.js 16.4.3. The initial Next.js 15 dependency tree included a high-severity PostCSS advisory; upgrading to the official Next.js 16 release resolved the install audit with zero reported vulnerabilities.
@@ -49,3 +49,8 @@
 - Emergency access requests are limited to Doctor and Nurse roles. The requester enters a policy id instead of receiving a catalog of restricted policy titles; only an active policy with an approved, unexpired current version is eligible.
 - The request transaction writes the temporary grant, flagged audit row, and one review notification per active Admin. Review records the outcome and moves the override to `reviewed`, which removes its grant from `fn_accessible_document_ids`.
 - Break-glass integration tests retain their synthetic policy, override, notifications, and append-only audit row as audit evidence; tests must not delete those records.
+
+## Phase 7
+
+- The standalone audit tamper rehearsal and core SQL constraint suite run in transactions and roll back their synthetic rows and trigger changes. No database rebuild was used for documentation verification, to preserve the local project database.
+- The Phase 7 test matrix reports unimplemented or unverified Push scenarios explicitly. In particular, ingestion is still a stub and the current search route is keyword-only; semantic search and mid-upload Mongo compensation are not claimed as complete.
