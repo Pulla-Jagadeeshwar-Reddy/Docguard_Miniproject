@@ -375,6 +375,9 @@ BEGIN
   END;
   IF NOT rejected THEN RAISE EXCEPTION 'self-referencing document edge was accepted'; END IF;
 
+  IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'docuguard_runtime' AND rolcanlogin) THEN
+    RAISE EXCEPTION 'runtime role must be login-enabled after the auth migration';
+  END IF;
   IF has_table_privilege('docuguard_runtime', 'public.access_logs', 'UPDATE')
      OR has_table_privilege('docuguard_runtime', 'public.access_logs', 'DELETE') THEN
     RAISE EXCEPTION 'runtime role can rewrite or delete access logs';

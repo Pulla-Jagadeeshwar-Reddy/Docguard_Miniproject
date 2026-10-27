@@ -2,7 +2,8 @@
 param(
   [switch]$Reset,
   [switch]$Test,
-  [switch]$TestOnly
+  [switch]$TestOnly,
+  [switch]$AuthOnly
 )
 
 $ErrorActionPreference = 'Stop'
@@ -20,9 +21,11 @@ Get-Content -LiteralPath $envPath | ForEach-Object {
 }
 $adminUser = $settings['POSTGRES_USER']
 $database = $settings['POSTGRES_DB']
+$runtimePassword = $settings['PG_PASSWORD']
 if (-not $adminUser -or -not $database) {
   throw '.env must define POSTGRES_USER and POSTGRES_DB for migrations.'
 }
+if (-not $runtimePassword) { throw '.env must define PG_PASSWORD for the runtime database role.' }
 
 function Invoke-SqlFile([string]$filePath, [switch]$NoTransaction) {
   $file = Get-Item -LiteralPath $filePath
@@ -32,28 +35,37 @@ function Invoke-SqlFile([string]$filePath, [switch]$NoTransaction) {
   if ($LASTEXITCODE -ne 0) { throw "Could not copy $($file.Name) into PostgreSQL." }
   $psqlArgs = @('compose', 'exec', '-T', 'postgres', 'psql', '-U', $adminUser,
     '-d', $database, '-v', 'ON_ERROR_STOP=1')
-  if (-not $NoTransaction) { $psqlArgs += '-1' }
+  if ($file.Name -eq '08_auth_runtime.sql') {
+    $psqlArgs += @('-v', "runtime_password=$runtimePassword")
+  }
+  if (-not $NoTransaction -and $file.Name -ne '08_auth_runtime.sql') { $psqlArgs += '-1' }
   $psqlArgs += @('-f', $containerFile)
   & docker @psqlArgs
   if ($LASTEXITCODE -ne 0) { throw "PostgreSQL failed while applying $($file.Name)." }
 }
 
-if ($Reset -and $TestOnly) {
-  throw 'Use -Reset to rebuild, or -TestOnly to run tests against the current schema.'
+if (($Reset -and $TestOnly) -or ($AuthOnly -and ($Reset -or $TestOnly -or $Test))) {
+  throw 'AuthOnly cannot be combined with Reset or test switches; TestOnly cannot be combined with Reset.'
 }
 if ($Reset) {
   Invoke-SqlFile (Join-Path $PSScriptRoot '99_drop.sql')
 }
 
-if (-not $TestOnly) {
+if ($AuthOnly) {
+  Invoke-SqlFile (Join-Path $PSScriptRoot '08_auth_runtime.sql') -NoTransaction
+} elseif (-not $TestOnly) {
   $migrationFiles = Get-ChildItem -LiteralPath $PSScriptRoot -Filter '*.sql' -File |
-    Where-Object { $_.Name -match '^0[1-7][a-z]?_' } |
+    Where-Object { $_.Name -match '^0[1-8][a-z]?_' } |
     Sort-Object -Property Name
   if (-not $migrationFiles) {
     throw 'No numbered migration files were found.'
   }
   foreach ($file in $migrationFiles) {
-    Invoke-SqlFile $file.FullName
+    if ($file.Name -eq '08_auth_runtime.sql') {
+      Invoke-SqlFile $file.FullName -NoTransaction
+    } else {
+      Invoke-SqlFile $file.FullName
+    }
   }
 }
 
