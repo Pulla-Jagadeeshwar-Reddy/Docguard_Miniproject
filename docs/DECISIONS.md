@@ -9,7 +9,4 @@
 - Docker Compose requires credentials from `.env`; no working credentials are embedded in the Compose file.
 - `/health` checks both PostgreSQL and MongoDB and returns 503 if either is unavailable. It does not expose connection errors.
 - The frontend uses Next.js 16.4.3. The initial Next.js 15 dependency tree included a high-severity PostCSS advisory; upgrading to the official Next.js 16 release resolved the install audit with zero reported vulnerabilities.
-
-## Environment limitation observed
-
-- Docker is not installed or available on PATH in the current execution environment. Compose health and the database-backed endpoint cannot be verified here unless Docker becomes available.
+- The host-side PostgreSQL port is 5433 while the container still listens on 5432. The user machine has a native PostgreSQL service on IPv4 port 5432, which intercepted backend connections; the separate port makes host routing unambiguous.
