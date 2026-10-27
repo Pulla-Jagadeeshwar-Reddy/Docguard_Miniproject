@@ -43,3 +43,9 @@
 - The supplied work split assigns the dependency graph to Pull, while the older blueprint section 18 lists it under Member B. The user's explicit instruction to complete Pull's work-split assignments takes precedence; Push-owned search, acknowledgments, and regulatory pages remain out of this branch.
 - Dependency graph reads, impact analysis, and reference writes are Admin-only as specified by the blueprint API table. Graph traversal treats links as connected relationships and uses a visited-id path; impact follows reverse dependency direction so it lists policies that depend on the selected policy.
 - Dashboard policy counts use the shared status view. Expiring policy rows are filtered with `fn_accessible_document_ids`; Admins see the shared activity view while other roles see only their own access events.
+
+## Phase 6
+
+- Emergency access requests are limited to Doctor and Nurse roles. The requester enters a policy id instead of receiving a catalog of restricted policy titles; only an active policy with an approved, unexpired current version is eligible.
+- The request transaction writes the temporary grant, flagged audit row, and one review notification per active Admin. Review records the outcome and moves the override to `reviewed`, which removes its grant from `fn_accessible_document_ids`.
+- Break-glass integration tests retain their synthetic policy, override, notifications, and append-only audit row as audit evidence; tests must not delete those records.

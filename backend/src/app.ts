@@ -13,6 +13,7 @@ import { auditRouter } from "./routes/audit.js";
 import { notificationsRouter } from "./routes/notifications.js";
 import { dashboardRouter } from "./routes/dashboard.js";
 import { dependenciesRouter } from "./routes/dependencies.js";
+import { overridesRouter } from "./routes/overrides.js";
 
 export const app = express();
 app.disable("x-powered-by");
@@ -39,6 +40,7 @@ app.use("/api/audit", auditRouter);
 app.use("/api/notifications", notificationsRouter);
 app.use("/api/dashboard", dashboardRouter);
 app.use("/api/documents", dependenciesRouter);
+app.use("/api/overrides", overridesRouter);
 
 app.get("/health", async (_request, response) => {
   const databases = await checkDatabases();
