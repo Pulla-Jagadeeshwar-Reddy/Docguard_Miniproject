@@ -32,3 +32,8 @@
 - Audit verification takes the same transaction advisory lock as the access-log hash trigger, rather than a table write lock, so verification sees a stable chain while the restricted API role remains unable to update or delete logs.
 - The document integration test uses one fixed synthetic PDF fixture and leaves its records and access events in the demo database. This keeps tests repeatable and respects the audit table's insert-only rule; `npm run db:rebuild-test` resets the local demo schema when a clean state is needed.
 - Tailwind CSS is configured through PostCSS. The frontend production build uses Next.js webpack because the default Turbopack CSS worker exited in this Windows environment; the webpack build compiled and generated all routes successfully.
+
+## Phase 4
+
+- The existing PostgreSQL expiry functions remain the source of truth for expiration and warning creation. The API invokes them at startup and every 24 hours; a transaction-scoped advisory lock prevents concurrent API instances from running the sweep simultaneously.
+- Notification reads and updates are scoped by the authenticated user id in SQL. The shared bell shows the latest ten rows and polls once per minute; the database notification table remains the durable inbox.
