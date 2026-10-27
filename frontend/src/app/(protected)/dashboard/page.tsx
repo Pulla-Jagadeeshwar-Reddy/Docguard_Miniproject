@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 export default function DashboardPage() {
   return (
     <section>
@@ -9,6 +11,7 @@ export default function DashboardPage() {
       <div style={{ marginTop: 28, background: "white", border: "1px solid #dce5e2", borderRadius: 12, padding: 22 }}>
         <h2 style={{ marginTop: 0, fontSize: 18 }}>Signed-in access</h2>
         <p style={{ color: "#5c6d68", marginBottom: 0 }}>Every protected API request checks the current account, role, and database permissions.</p>
+        <p style={{ marginBottom: 0, marginTop: 16 }}><Link href="/documents" style={{ color: "#176c59", fontWeight: 700 }}>Open the policy library →</Link></p>
       </div>
     </section>
   );

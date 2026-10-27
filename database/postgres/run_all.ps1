@@ -3,7 +3,8 @@ param(
   [switch]$Reset,
   [switch]$Test,
   [switch]$TestOnly,
-  [switch]$AuthOnly
+  [switch]$AuthOnly,
+  [switch]$DocumentsOnly
 )
 
 $ErrorActionPreference = 'Stop'
@@ -44,8 +45,9 @@ function Invoke-SqlFile([string]$filePath, [switch]$NoTransaction) {
   if ($LASTEXITCODE -ne 0) { throw "PostgreSQL failed while applying $($file.Name)." }
 }
 
-if (($Reset -and $TestOnly) -or ($AuthOnly -and ($Reset -or $TestOnly -or $Test))) {
-  throw 'AuthOnly cannot be combined with Reset or test switches; TestOnly cannot be combined with Reset.'
+if (($Reset -and $TestOnly) -or ($AuthOnly -and ($Reset -or $TestOnly -or $Test -or $DocumentsOnly)) -or
+    ($DocumentsOnly -and ($Reset -or $TestOnly -or $Test))) {
+  throw 'AuthOnly and DocumentsOnly cannot be combined with reset, test, or each other.'
 }
 if ($Reset) {
   Invoke-SqlFile (Join-Path $PSScriptRoot '99_drop.sql')
@@ -53,9 +55,11 @@ if ($Reset) {
 
 if ($AuthOnly) {
   Invoke-SqlFile (Join-Path $PSScriptRoot '08_auth_runtime.sql') -NoTransaction
+} elseif ($DocumentsOnly) {
+  Invoke-SqlFile (Join-Path $PSScriptRoot '09_documents.sql')
 } elseif (-not $TestOnly) {
   $migrationFiles = Get-ChildItem -LiteralPath $PSScriptRoot -Filter '*.sql' -File |
-    Where-Object { $_.Name -match '^0[1-8][a-z]?_' } |
+    Where-Object { $_.Name -match '^0[1-9][a-z]?_' } |
     Sort-Object -Property Name
   if (-not $migrationFiles) {
     throw 'No numbered migration files were found.'
