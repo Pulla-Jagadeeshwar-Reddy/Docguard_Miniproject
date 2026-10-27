@@ -29,11 +29,12 @@ Start PostgreSQL and MongoDB with `docker compose up -d`; PostgreSQL is publishe
 
 - `npm run db:apply` applies the numbered SQL files in filename order to an empty schema and configures the restricted runtime role from `PG_PASSWORD`.
 - `npm run db:auth` applies only the runtime-role migration to an already-created Phase 1 database.
+- `npm run db:documents` applies the document checksum migration to an existing Phase 2 database.
 - `npm run db:rebuild` drops and recreates every object in the database's `public` schema, then reapplies migrations. Use only with the dedicated local project database; it preserves Docker volumes but removes their schema objects.
 - `npm run db:test` runs the SQL tests against an already-migrated schema.
 - `npm run db:rebuild-test` rebuilds the schema and runs the SQL tests.
 
-Pull's current SQL slice provides 14 core tables, core views/functions/triggers and seed accounts. Push's eight search/compliance tables and their SQL files are separate work. The SQL runner will include those files once they are added.
+Pull's SQL slice currently provides 14 core tables, core views/functions/triggers, seed accounts, and the runtime role. Migration 09 adds duplicate-checksum enforcement for policy versions. Push's eight search/compliance tables and their SQL files are separate work.
 
 Seeded fake demo accounts (passwords are stored as salted bcrypt hashes at cost 12):
 
@@ -54,7 +55,7 @@ These credentials are for the synthetic local demo only. PostgreSQL migrations r
 
 After the databases are healthy and `npm run db:apply` has completed, start the API and web app with `npm run dev`. Sign in at `http://localhost:3000/login`. The API sets an HTTP-only session cookie; passwords and password hashes are never returned. Admins can manage accounts from the User administration page.
 
-Run the auth and user-management API integration tests with `npm run test --workspace backend`. They use seeded fake accounts and remove temporary test users.
+Run API integration tests with `npm run test --workspace backend`. The document workflow test intentionally leaves one synthetic policy and append-only audit events in the database; use `npm run db:rebuild-test` to reset the local demo schema. Until Push merges its ingestion service, uploaded files are stored locally and PostgreSQL versions are created, while text extraction and search indexing remain visibly pending.
 
 ## Troubleshooting
 
@@ -64,4 +65,4 @@ Run the auth and user-management API integration tests with `npm run test --work
 
 ## Project status
 
-Phase 2 Pull auth and user administration. See `docs/DECISIONS.md` for current assumptions and source notes.
+Phase 3 Pull documents, versions, approvals, and audit. Push's ingestion module is still a temporary integration stub until that branch is merged; see `docs/DECISIONS.md`.
