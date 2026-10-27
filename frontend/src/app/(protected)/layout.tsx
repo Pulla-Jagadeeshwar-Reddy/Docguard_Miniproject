@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { ReactNode, useEffect, useState } from "react";
 import { api } from "@/lib/api";
+import { NotificationsBell } from "@/components/notifications-bell";
 
 type SessionUser = { id: number; fullName: string; role: string };
 
@@ -41,6 +42,7 @@ export default function ProtectedLayout({ children }: { children: ReactNode }) {
         <nav aria-label="Main navigation" style={{ display: "flex", gap: 18, marginRight: "auto", marginLeft: 28 }}>
           {links.map(link => <Link key={link.href} href={link.href} aria-current={pathname === link.href ? "page" : undefined} style={{ color: pathname === link.href ? "#18765f" : "#52645f", fontWeight: 600 }}>{link.label}</Link>)}
         </nav>
+        <NotificationsBell />
         <span>{user.fullName} · {user.role}</span>
         <button onClick={logout} style={{ border: "1px solid #b9c9c4", borderRadius: 7, background: "white", padding: "8px 12px", cursor: "pointer" }}>Sign out</button>
       </header>
