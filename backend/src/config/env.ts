@@ -21,5 +21,12 @@ export const env = {
   },
   mongoUri: required("MONGO_URI"),
   mongoDb: required("MONGO_DB"),
-  frontendOrigin: process.env.FRONTEND_ORIGIN ?? "http://localhost:3000"
+  frontendOrigin: process.env.FRONTEND_ORIGIN ?? "http://localhost:3000",
+  jwtSecret: required("JWT_SECRET"),
+  jwtExpiresIn: process.env.JWT_EXPIRES_IN ?? "1h",
+  isProduction: process.env.NODE_ENV === "production"
 };
+
+if (env.jwtSecret.length < 32) {
+  throw new Error("JWT_SECRET must be at least 32 characters long");
+}
