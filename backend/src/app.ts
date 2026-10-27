@@ -11,6 +11,8 @@ import { searchRouter } from "./routes/search.js";
 import { documentsRouter, versionsRouter } from "./routes/documents.js";
 import { auditRouter } from "./routes/audit.js";
 import { notificationsRouter } from "./routes/notifications.js";
+import { dashboardRouter } from "./routes/dashboard.js";
+import { dependenciesRouter } from "./routes/dependencies.js";
 
 export const app = express();
 app.disable("x-powered-by");
@@ -35,6 +37,8 @@ app.use("/api/documents", documentsRouter);
 app.use("/api/versions", versionsRouter);
 app.use("/api/audit", auditRouter);
 app.use("/api/notifications", notificationsRouter);
+app.use("/api/dashboard", dashboardRouter);
+app.use("/api/documents", dependenciesRouter);
 
 app.get("/health", async (_request, response) => {
   const databases = await checkDatabases();

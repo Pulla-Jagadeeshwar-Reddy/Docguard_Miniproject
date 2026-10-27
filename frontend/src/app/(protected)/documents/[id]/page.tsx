@@ -81,6 +81,7 @@ export default function DocumentDetailPage() {
       <Link href="/documents" style={{ color: "#176c59" }}>← Documents</Link>
       <p style={{ color: "#18765f", fontWeight: 700, marginTop: 28 }}>{document.category.toUpperCase()}</p>
       <h1>{document.title}</h1>
+      {role === "Admin" && <p><Link href={`/documents/${document.id}/impact`} style={{ color: "#176c59", fontWeight: 700 }}>View dependency graph and impact →</Link></p>}
       <p style={{ color: "#5c6d68" }}>Owner: {document.owner} · Document status: {document.status}</p>
       {error && <p role="alert" style={{ color: "#a32929" }}>{error}</p>}{message && <p role="status" style={{ color: "#18765f" }}>{message}</p>}
       {ingestionPending && <p role="status" style={{ ...panelStyle, color: "#6b5a1a" }}>The file is stored and versioned. Text extraction and search indexing are awaiting Push’s ingestion service.</p>}
