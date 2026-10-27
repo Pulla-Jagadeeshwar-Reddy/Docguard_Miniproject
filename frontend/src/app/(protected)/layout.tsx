@@ -26,9 +26,16 @@ export default function ProtectedLayout({ children }: { children: ReactNode }) {
     return <main style={{ padding: 40, color: "#50635d" }} aria-live="polite">{loading ? "Loading your session…" : "Redirecting to sign in…"}</main>;
   }
 
-  const links = [{ href: "/dashboard", label: "Overview" }, ...(user.role === "Admin" ? [{ href: "/admin/users", label: "User administration" }] : [])];
+  const links = [
+    { href: "/dashboard", label: "Overview" },
+    { href: "/documents", label: "Documents" },
+    ...(user.role === "Admin" ? [
+      { href: "/admin/users", label: "User administration" },
+      { href: "/admin/audit", label: "Audit log" }
+    ] : [])
+  ];
   return (
-    <div style={{ minHeight: "100vh", background: "#f4f7f6", color: "#17342d" }}>
+    <div className="min-h-screen" style={{ background: "#f4f7f6", color: "#17342d" }}>
       <header style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 20, padding: "14px 28px", background: "white", borderBottom: "1px solid #dce5e2" }}>
         <Link href="/dashboard" style={{ color: "#18765f", fontWeight: 800, textDecoration: "none" }}>DocuGuard</Link>
         <nav aria-label="Main navigation" style={{ display: "flex", gap: 18, marginRight: "auto", marginLeft: 28 }}>
