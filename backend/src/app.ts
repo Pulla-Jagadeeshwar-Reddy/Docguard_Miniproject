@@ -7,6 +7,7 @@ import { authRouter } from "./routes/auth.js";
 import { usersRouter } from "./routes/users.js";
 import { errorHandler } from "./middleware/errors.js";
 import { env } from "./config/env.js";
+import { searchRouter } from "./routes/search.js";
 
 export const app = express();
 app.disable("x-powered-by");
@@ -26,6 +27,7 @@ app.use(express.json({ limit: "1mb" }));
 
 app.use("/api/auth", authRouter);
 app.use("/api/users", usersRouter);
+app.use("/api/search", searchRouter);
 
 app.get("/health", async (_request, response) => {
   const databases = await checkDatabases();
