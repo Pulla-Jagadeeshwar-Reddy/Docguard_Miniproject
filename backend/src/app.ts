@@ -1,11 +1,31 @@
 import express from "express";
 import helmet from "helmet";
+import cors from "cors";
+import cookieParser from "cookie-parser";
 import { checkDatabases } from "./config/databases.js";
+import { authRouter } from "./routes/auth.js";
+import { usersRouter } from "./routes/users.js";
+import { errorHandler } from "./middleware/errors.js";
+import { env } from "./config/env.js";
 
 export const app = express();
 app.disable("x-powered-by");
 app.use(helmet());
+app.use(cors({
+  origin: (origin, callback) => {
+    if (!origin || origin === env.frontendOrigin) {
+      callback(null, true);
+    } else {
+      callback(new Error("Origin not allowed"));
+    }
+  },
+  credentials: true
+}));
+app.use(cookieParser());
 app.use(express.json({ limit: "1mb" }));
+
+app.use("/api/auth", authRouter);
+app.use("/api/users", usersRouter);
 
 app.get("/health", async (_request, response) => {
   const databases = await checkDatabases();
@@ -19,3 +39,5 @@ app.get("/health", async (_request, response) => {
 app.use((_request, response) => {
   response.status(404).json({ error: "Not found" });
 });
+
+app.use(errorHandler);

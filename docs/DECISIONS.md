@@ -13,3 +13,11 @@
 - Pull/Push contracts from `docs/WORK_SPLIT.md` are the provisional implementation interface: `req.user` has `id`, `roleId`, `role`, and `departmentId`; `fn_accessible_document_ids(user_id)` centralizes role-grant and active-override access; Pull exposes `logAccess(client, { userId, documentId, versionId, action, ip })`; Push ingestion exposes `ingestFile`, `deleteIngested`, and `queueEmbedding`; Push adds acknowledgment notifications directly in its trigger. Confirm these at the team sync before wiring cross-slice routes.
 - The schema creates `docuguard_runtime` as a non-login role and grants only append/read access on `access_logs`. Phase 2 must enable login for this role and configure the app connection; migrations continue using the separate Compose administrator.
 - `dependency_warning` is an additive notification type so the Pull-owned document-retirement trigger can notify owners of dependent policies. The original dictionary's notification CHECK list did not include this type.
+
+## Phase 2
+
+- The backend connects as `docuguard_runtime`, not the Compose administrator. Migration 08 enables this role using the `PG_PASSWORD` value supplied through the migration runner; DDL continues to run as `POSTGRES_USER`.
+- Role and permission assignments are loaded from PostgreSQL on every authenticated request instead of trusting JWT role claims. Account suspension and role changes therefore take effect on the next request.
+- Sessions use an HTTP-only, SameSite=Lax cookie; the JWT contains only the user id. Secure cookies are enabled in production. JWT lifetime is configurable from one second to one day.
+- Phase 2 uses Jest with Supertest for API integration coverage. Tests import the compiled TypeScript backend, so the project does not need a second TypeScript test compiler. Login generic-error and user-access cases are covered; blueprint search-injection test 2 is deferred until Push adds the search endpoint.
+- GET `/api/users` returns role and department options along with user rows so the admin form uses actual database ids rather than assuming seed ids.

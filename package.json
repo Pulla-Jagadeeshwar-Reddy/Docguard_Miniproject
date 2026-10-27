@@ -11,6 +11,7 @@
     "lint": "npm run lint --workspace backend && npm run lint --workspace frontend",
     "db:apply": "powershell -NoProfile -ExecutionPolicy Bypass -File database/postgres/run_all.ps1",
     "db:rebuild": "powershell -NoProfile -ExecutionPolicy Bypass -File database/postgres/run_all.ps1 -Reset",
+    "db:auth": "powershell -NoProfile -ExecutionPolicy Bypass -File database/postgres/run_all.ps1 -AuthOnly",
     "db:test": "powershell -NoProfile -ExecutionPolicy Bypass -File database/postgres/run_all.ps1 -TestOnly",
     "db:rebuild-test": "powershell -NoProfile -ExecutionPolicy Bypass -File database/postgres/run_all.ps1 -Reset -Test"
   },
