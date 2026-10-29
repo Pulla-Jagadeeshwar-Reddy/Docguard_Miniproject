@@ -24,3 +24,5 @@ Push should append its own search, acknowledgment, and coverage page states afte
 | 11 | `/search` | Hybrid query, category filter, result snippet, and mode labels for an approved synthetic policy. |
 | 12 | `/documents/[id]` | Related-policies panel with similarity scores. |
 | 13 | `/dashboard` | Admin keyword analytics widget populated from MongoDB policy content. |
+| 14 | `/my-policies` | A pending assigned current version with the acknowledgment action. |
+| 15 | `/admin/acknowledgments` | Assignment form and department completion chart with seeded data. |
