@@ -14,8 +14,10 @@ Healthcare Policy & Compliance Intelligence Platform for the DBMS Level 3 projec
 2. Start the databases with `docker compose up -d`.
 3. Install workspace packages with `npm install`.
 4. Apply the schema with `npm run db:apply`.
-5. Start the API and web app with `npm run dev`.
-6. Open `http://localhost:3000/login`; check the API at `http://localhost:4000/health`.
+5. Seed MongoDB's indexes and synthetic policy text: `npm run db:mongo:indexes` followed by `npm run db:mongo:seed`.
+6. Generate embeddings for those seed policies with `npm run db:embeddings` (first run downloads and caches the model).
+7. Start the API and web app with `npm run dev`.
+8. Open `http://localhost:3000/login`; check the API at `http://localhost:4000/health`.
 
 The health endpoint returns HTTP 200 only when PostgreSQL and MongoDB both respond to a ping.
 
@@ -68,4 +70,4 @@ Uploaded PDF and DOCX files are extracted into MongoDB and divided into overlapp
 
 ## Project status
 
-Pull has completed Phases 1–7. Push Phase 1 (search/compliance database) and Phase 2 (ingestion/embeddings) are implemented on the current branch. Push phases 3–7 remain in progress; see [`docs/WORK_SPLIT.md`](docs/WORK_SPLIT.md) and [`docs/TESTING.md`](docs/TESTING.md).
+Pull has completed Phases 1–7. Push Phases 1–4 (database, ingestion/embeddings, search/similarity, and search UI/analytics) are implemented; Push phases 5–7 remain in progress. See [`docs/WORK_SPLIT.md`](docs/WORK_SPLIT.md) and [`docs/TESTING.md`](docs/TESTING.md).

@@ -30,6 +30,7 @@ export default function ProtectedLayout({ children }: { children: ReactNode }) {
   const links = [
     { href: "/dashboard", label: "Overview" },
     { href: "/documents", label: "Documents" },
+    { href: "/search", label: "Search" },
     ...(user.role === "Doctor" || user.role === "Nurse" ? [
       { href: "/break-glass", label: "Emergency access" }
     ] : []),

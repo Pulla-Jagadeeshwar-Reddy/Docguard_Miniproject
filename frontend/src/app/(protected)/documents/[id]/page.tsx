@@ -7,6 +7,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { api, uploadWithProgress } from "@/lib/api";
+import { RelatedPolicies } from "@/components/related-policies";
 
 type Version = { id: number; versionNumber: number; status: string; uploadedAt: string; effectiveDate: string; expiryDate: string | null; uploadedBy: string; approvedBy: string | null; approvedAt: string | null };
 type DocumentDetail = { id: number; title: string; status: string; categoryId: number; category: string; owner: string; currentVersionId: number | null };
@@ -84,7 +85,8 @@ export default function DocumentDetailPage() {
       {role === "Admin" && <p><Link href={`/documents/${document.id}/impact`} style={{ color: "#176c59", fontWeight: 700 }}>View dependency graph and impact →</Link></p>}
       <p style={{ color: "#5c6d68" }}>Owner: {document.owner} · Document status: {document.status}</p>
       {error && <p role="alert" style={{ color: "#a32929" }}>{error}</p>}{message && <p role="status" style={{ color: "#18765f" }}>{message}</p>}
-      {ingestionPending && <p role="status" style={{ ...panelStyle, color: "#6b5a1a" }}>The file is stored and versioned. Text extraction and search indexing are awaiting Push’s ingestion service.</p>}
+      {ingestionPending && <p role="status" style={{ ...panelStyle, color: "#6b5a1a" }}>The file is stored and versioned. Text extraction or vector indexing is still processing; search results will appear when it completes.</p>}
+      <RelatedPolicies documentId={document.id} />
       <div style={panelStyle}>
         <h2 style={{ marginTop: 0, fontSize: 18 }}>Version history</h2>
         {versions.length === 0 ? <p>No versions have been uploaded.</p> : <div style={{ overflowX: "auto" }}>

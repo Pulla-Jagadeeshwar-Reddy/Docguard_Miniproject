@@ -47,6 +47,18 @@ test("similar policies endpoint is authenticated and permission filtered", async
   assert.equal(response.body.similar.some(row => row.title.includes("Patient Identification")), false);
 });
 
+test("keyword analytics is limited to Admin and returns MongoDB aggregations", async () => {
+  const admin = await signedIn("admin1@docuguard.local", "DG-Demo-Admin-01!");
+  const response = await admin.get("/api/analytics/keywords");
+  assert.equal(response.status, 200);
+  assert.ok(Array.isArray(response.body.topKeywords));
+  assert.ok(Array.isArray(response.body.categories));
+  assert.ok(Array.isArray(response.body.longestDocuments));
+
+  const staff = await signedIn("staff1@docuguard.local", "DG-Demo-Staff-01!");
+  assert.equal((await staff.get("/api/analytics/keywords")).status, 403);
+});
+
 afterAll(async () => {
   await pgPool.end();
   await mongoClient.close();
