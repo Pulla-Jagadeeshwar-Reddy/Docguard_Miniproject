@@ -1,6 +1,6 @@
 # Push — Phase 1 implementation
 
-This folder contains the first database deliverables for Push. It is intentionally limited to schema, seed data, MongoDB setup/analytics, and SQL constraint tests; the Express ingestion service and embedding worker are Phase 2.
+This file is the Phase 1 scope snapshot for Push's database deliverables: schema, seed data, MongoDB setup/analytics, and SQL constraint tests. The Phase 2 and later sections below it were completed in subsequent phase branches.
 
 ## Files added
 
@@ -29,7 +29,7 @@ This folder contains the first database deliverables for Push. It is intentional
 
 Run SQL migrations before MongoDB seeding because the seed script reads generated document/version IDs from PostgreSQL. The SQL seed creates the matching documents and versions.
 
-## What Phase 1 does not do yet
+## What Phase 1 did not do at that phase boundary
 
 - It does not generate embeddings or insert rows into `document_chunks`; that table receives vectors when the local embedding worker is implemented in Phase 2.
 - It does not expose search, acknowledgment or compliance HTTP endpoints yet.
