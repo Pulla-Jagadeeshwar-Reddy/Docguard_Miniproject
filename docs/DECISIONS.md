@@ -21,6 +21,10 @@
 - Sessions use an HTTP-only, SameSite=Lax cookie; the JWT contains only the user id. Secure cookies are enabled in production. JWT lifetime is configurable from one second to one day.
 - Phase 2 uses Jest with Supertest for API integration coverage. Tests import the compiled TypeScript backend, so the project does not need a second TypeScript test compiler. Login generic-error and user-access cases are covered; blueprint search-injection test 2 is deferred until Push adds the search endpoint.
 - GET `/api/users` returns role and department options along with user rows so the admin form uses actual database ids rather than assuming seed ids.
+- Push extraction uses PDF.js for PDF text and Mammoth for DOCX text. Scanned-image OCR remains out of scope.
+- Push stores 300-word chunks with a 50-word overlap in MongoDB. The local `Xenova/all-MiniLM-L6-v2` Transformers.js feature-extraction pipeline creates normalized 384-dimensional vectors; PostgreSQL stores vectors and English `tsvector` values together.
+- Mongo content is prepared before the SQL upload transaction, linked to generated SQL ids before commit, and deleted as compensation on failure. A delayed orphan sweep removes old Mongo records that have no SQL version.
+- Mongo version uniqueness indexes filter for linked numeric version ids, allowing multiple concurrent in-flight ingestion records with `versionId: null`.
 
 ## Phase 3
 
@@ -53,4 +57,4 @@
 ## Phase 7
 
 - The standalone audit tamper rehearsal and core SQL constraint suite run in transactions and roll back their synthetic rows and trigger changes. No database rebuild was used for documentation verification, to preserve the local project database.
-- The Phase 7 test matrix reports unimplemented or unverified Push scenarios explicitly. In particular, ingestion is still a stub and the current search route is keyword-only; semantic search and mid-upload Mongo compensation are not claimed as complete.
+- The original Phase 7 status snapshot predates Push Phases 2–7. Current completion and verification status is maintained in `docs/TESTING.md`.

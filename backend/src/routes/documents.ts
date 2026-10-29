@@ -7,7 +7,7 @@ import { z } from "zod";
 import { pgPool } from "../config/databases.js";
 import { env } from "../config/env.js";
 import { requireAuth, requirePermission, requireRole } from "../middleware/auth.js";
-import { deleteIngested, ingestFile, ingestionIsTemporaryStub, queueEmbedding } from "../services/ingest.js";
+import { deleteIngested, ingestFile, ingestionIsTemporaryStub, linkIngested, queueEmbedding } from "../services/ingest.js";
 import { logAccess } from "../services/audit.js";
 
 const documentsRouter = Router();
@@ -105,6 +105,7 @@ async function saveUpload(request: UploadRequest, response: Response, next: Next
 
   const actor = request.user!;
   let mongoContentId: string | null = null;
+  let existingMongoDocId: string | undefined;
   let transactionStarted = false;
   let client;
   try {
@@ -127,7 +128,7 @@ async function saveUpload(request: UploadRequest, response: Response, next: Next
 
     if (existingDocumentId !== null) {
       const document = await pgPool.query(
-        `SELECT d.document_id, d.title, d.owner_id
+        `SELECT d.document_id, d.title, d.owner_id, d.mongo_doc_id
          FROM documents d
          WHERE d.document_id = $1
            AND ($2 = 'Admin' OR (
@@ -145,11 +146,13 @@ async function saveUpload(request: UploadRequest, response: Response, next: Next
         response.status(404).json({ error: "Document not found" });
         return;
       }
+      existingMongoDocId = document.rows[0].mongo_doc_id ?? undefined;
     }
 
     const storedFileName = basename(file.filename);
     const ingested = await ingestFile(file.path, {
       documentId: existingDocumentId,
+      mongoDocId: existingMongoDocId,
       title: parsed.data.title,
       category: categoryName,
       fileName: file.originalname,
@@ -212,6 +215,7 @@ async function saveUpload(request: UploadRequest, response: Response, next: Next
       [documentId, versionNumber, storedFileName, ingested.mongoContentId, checksum,
        actor.id, parsed.data.effectiveDate, parsed.data.expiryDate || null]
     );
+    await linkIngested(ingested.mongoContentId, ingested.mongoDocId, documentId, version.rows[0].version_id);
     await logAccess(client, { userId: actor.id, documentId, versionId: version.rows[0].version_id, action: "upload", ip: request.ip ?? null });
     await client.query("COMMIT");
     transactionStarted = false;
@@ -332,6 +336,8 @@ documentsRouter.post("/versions/:versionId/approve", requirePermission("DOCUMENT
     const approved = result.rows[0];
     await logAccess(client, { userId: request.user!.id, documentId: approved.document_id, versionId: approved.version_id, action: "approve", ip: request.ip ?? null });
     await client.query("COMMIT");
+    try { await queueEmbedding(approved.version_id); }
+    catch { console.warn("DocuGuard approved-version embedding refresh failed; retry by reprocessing the version"); }
     response.json({ versionId: approved.version_id, versionNumber: approved.version_number, status: approved.version_status });
   } catch (error) {
     try { await client.query("ROLLBACK"); } catch { /* Transaction may already be closed. */ }
