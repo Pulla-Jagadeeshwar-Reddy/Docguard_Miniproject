@@ -1,8 +1,18 @@
 import assert from "node:assert/strict";
-import { afterAll, test } from "@jest/globals";
+import { afterAll, jest, test } from "@jest/globals";
 import request from "supertest";
-import { app } from "../dist/app.js";
-import { mongoClient, pgPool } from "../dist/config/databases.js";
+
+// ONNX Runtime's native addon crosses Jest's VM typed-array realm boundary.
+// Keep API tests deterministic and exercise the real local model separately via
+// `npm run model:check` (a plain Node process outside Jest's VM).
+jest.unstable_mockModule("@huggingface/transformers", () => ({
+  pipeline: async () => async () => ({
+    tolist: () => [Array.from({ length: 384 }, (_, index) => index === 0 ? 1 : 0)]
+  })
+}));
+
+const { app } = await import("../dist/app.js");
+const { mongoClient, pgPool } = await import("../dist/config/databases.js");
 
 async function signedIn(email, password) {
   const agent = request.agent(app);

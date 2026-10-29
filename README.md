@@ -16,8 +16,9 @@ Healthcare Policy & Compliance Intelligence Platform for the DBMS Level 3 projec
 4. Apply the schema with `npm run db:apply`.
 5. Seed MongoDB's indexes and synthetic policy text: `npm run db:mongo:indexes` followed by `npm run db:mongo:seed`.
 6. Generate embeddings for those seed policies with `npm run db:embeddings` (first run downloads and caches the model).
-7. Start the API and web app with `npm run dev`.
-8. Open `http://localhost:3000/login`; check the API at `http://localhost:4000/health`.
+7. Optionally verify the local embedding model with `npm run model:check`.
+8. Start the API and web app with `npm run dev`.
+9. Open `http://localhost:3000/login`; check the API at `http://localhost:4000/health`.
 
 The health endpoint returns HTTP 200 only when PostgreSQL and MongoDB both respond to a ping.
 
@@ -34,7 +35,8 @@ Start PostgreSQL and MongoDB with `docker compose up -d`; PostgreSQL is publishe
 - `npm run db:documents` applies the document checksum migration to an existing Phase 2 database.
 - `npm run db:rebuild` drops and recreates every object in the database's `public` schema, then reapplies migrations. Use only with the dedicated local project database; it preserves Docker volumes but removes their schema objects.
 - `npm run db:test` runs the SQL tests against an already-migrated schema.
-- `npm run db:rebuild-test` rebuilds the schema and runs the SQL tests.
+- `npm run db:rebuild-test` creates uniquely named temporary PostgreSQL and MongoDB databases, applies migrations and seeds, runs model, API, and SQL tests, then removes those temporary databases. It leaves the configured project databases untouched.
+- `npm run model:check` verifies that the configured local embedding model returns 384 finite, normalized values.
 - `npm run db:mongo:indexes` creates or upgrades MongoDB indexes; `npm run db:mongo:seed` loads the synthetic policy text after SQL migrations; `npm run db:embeddings` indexes approved seed versions for semantic search.
 
 The integrated SQL schema includes the core document, access, and audit tables plus search, acknowledgment, and regulatory coverage tables. Numbered migrations apply both contributors' schema slices in order.
@@ -58,7 +60,7 @@ These credentials are for the synthetic local demo only. PostgreSQL migrations r
 
 After the databases are healthy and `npm run db:apply` has completed, start the API and web app with `npm run dev`. Sign in at `http://localhost:3000/login`. The API sets an HTTP-only session cookie; passwords and password hashes are never returned. Admins can manage accounts from the User administration page.
 
-Run API integration tests with `npm run test --workspace backend` after both databases are healthy and migrations/seeds are applied. The document workflow test intentionally leaves one synthetic policy and append-only audit events in the database. Do not run `npm run db:rebuild-test` against shared or valuable data; it drops the schema.
+Run API integration tests with `npm run test --workspace backend` after both databases are healthy and migrations/seeds are applied. The document workflow test intentionally leaves one synthetic policy and append-only audit events in the database. `npm run db:rebuild-test` uses separate disposable databases; `npm run db:rebuild` still resets the configured database schema and should only be used for disposable project data.
 
 Uploaded PDF and DOCX files are extracted into MongoDB and divided into overlapping text chunks. The local `Xenova/all-MiniLM-L6-v2` model generates 384-dimensional vectors for PostgreSQL; the model is downloaded and cached the first time an upload or approval runs. See [`docs/PHASE2_PUSH.md`](docs/PHASE2_PUSH.md) for runtime details and OCR limitations.
 
@@ -79,4 +81,4 @@ Uploaded PDF and DOCX files are extracted into MongoDB and divided into overlapp
 
 ## Project status
 
-Pull and Push feature slices are integrated on `main`. TypeScript checks and production builds are verified in the current workspace; database-backed integration and SQL checks still require reachable PostgreSQL and MongoDB services. See [`docs/TESTING.md`](docs/TESTING.md) for the current verification record.
+Pull and Push feature slices are integrated on `main`. The current workspace has passed TypeScript linting, database-backed API tests, SQL constraint and audit-tamper tests, and the local embedding check against disposable databases. The PDF samples were rendered and inspected; DOCX packages were structurally checked, but could not be visually rendered because LibreOffice is unavailable. No screenshots were fabricated. See [`docs/TESTING.md`](docs/TESTING.md) for the exact verification record.

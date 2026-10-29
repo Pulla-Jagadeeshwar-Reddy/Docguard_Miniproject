@@ -83,8 +83,14 @@ test("upload, access, approval and audit APIs preserve permissions and workflow"
   assert.equal(download.status, 200);
   assert.match(download.headers["content-disposition"], /attachment/);
 
+  const mongoContentsBeforeDuplicate = await mongoClient.db(process.env.MONGO_DB).collection("document_contents")
+    .countDocuments({ title: policyTitle });
   const duplicate = await sendUpload();
   assert.equal(duplicate.status, 409);
+  const mongoContentsAfterDuplicate = await mongoClient.db(process.env.MONGO_DB).collection("document_contents")
+    .countDocuments({ title: policyTitle });
+  assert.equal(mongoContentsAfterDuplicate, mongoContentsBeforeDuplicate,
+    "Mongo content written before the duplicate SQL check must be compensated");
 
   const firstVersion = detail.body.versions.find(item => item.versionNumber === 1);
   if (firstVersion?.status === "pending_review") {

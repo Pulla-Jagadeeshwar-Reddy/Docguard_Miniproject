@@ -3,7 +3,7 @@ import { Pool } from 'pg';
 import { config } from 'dotenv';
 import { fileURLToPath } from 'node:url';
 import { resolve, basename } from 'node:path';
-import { readFile } from 'node:fs/promises';
+import { copyFile, mkdir, readFile } from 'node:fs/promises';
 
 config({ path: fileURLToPath(new URL('../../.env', import.meta.url)) });
 
@@ -22,9 +22,18 @@ if (!mongoUri || !mongoDbName || !pgConfig.host || !pgConfig.database || !pgConf
 }
 
 const policyFiles = [
-  { file: 'standard-precautions.md', mongoDocId: 'demo-infection-control', contentId: 'demo-content-infection-control-v1', category: 'Infection Control' },
-  { file: 'patient-privacy.md', mongoDocId: 'demo-patient-privacy', contentId: 'demo-content-patient-privacy-v1', category: 'Privacy' },
-  { file: 'patient-identification.md', mongoDocId: 'demo-patient-identification', contentId: 'demo-content-patient-identification-v1', category: 'Patient Safety' }
+  { file: 'standard-precautions.md', pdf: 'standard-precautions-and-sharps-injury-response.pdf', mongoDocId: 'demo-infection-control', contentId: 'demo-content-infection-control-v1', category: 'Infection Control' },
+  { file: 'patient-privacy.md', pdf: 'patient-information-privacy-and-minimum-necessary-access.pdf', mongoDocId: 'demo-patient-privacy', contentId: 'demo-content-patient-privacy-v1', category: 'Privacy' },
+  { file: 'patient-identification.md', pdf: 'emergency-department-patient-identification.pdf', mongoDocId: 'demo-patient-identification', contentId: 'demo-content-patient-identification-v1', category: 'Patient Safety' },
+  { file: 'hand-hygiene.md', pdf: 'hand-hygiene-for-clinical-staff.pdf', mongoDocId: 'demo-hand-hygiene', contentId: 'demo-content-hand-hygiene-v1', category: 'Infection Control' },
+  { file: 'hand-hygiene-quick-reference.md', pdf: 'hand-hygiene-quick-reference.pdf', mongoDocId: 'demo-hand-hygiene-quick', contentId: 'demo-content-hand-hygiene-quick-v1', category: 'Infection Control' },
+  { file: 'medication-safety.md', pdf: 'medication-safety-and-independent-checks.pdf', mongoDocId: 'demo-medication-safety', contentId: 'demo-content-medication-safety-v1', category: 'Medication Safety' },
+  { file: 'biomedical-waste.md', pdf: 'biomedical-waste-segregation.pdf', mongoDocId: 'demo-biomedical-waste', contentId: 'demo-content-biomedical-waste-v1', category: 'Waste Management' },
+  { file: 'emergency-code.md', pdf: 'emergency-code-and-incident-communication.pdf', mongoDocId: 'demo-emergency-code', contentId: 'demo-content-emergency-code-v1', category: 'Emergency Preparedness' },
+  { file: 'visitor-access.md', pdf: 'visitor-access-and-conduct.pdf', mongoDocId: 'demo-visitor-access', contentId: 'demo-content-visitor-access-v1', category: 'Administration' },
+  { file: 'retention-seven-year.md', pdf: 'records-retention-schedule-seven-year-example.pdf', mongoDocId: 'demo-retention-seven-year', contentId: 'demo-content-retention-seven-year-v1', category: 'Records Management' },
+  { file: 'retention-ten-year.md', pdf: 'records-retention-schedule-ten-year-example.pdf', mongoDocId: 'demo-retention-ten-year', contentId: 'demo-content-retention-ten-year-v1', category: 'Records Management' },
+  { file: 'backup-recovery.md', pdf: 'backup-and-disaster-recovery.pdf', mongoDocId: 'demo-backup-recovery', contentId: 'demo-content-backup-recovery-v1', category: 'Emergency Preparedness' }
 ];
 
 function splitIntoChunks(text, maxWords = 300, overlapWords = 50) {
@@ -58,6 +67,15 @@ function extractKeywords(text) {
 const mongo = new MongoClient(mongoUri, { serverSelectionTimeoutMS: 5000 });
 const pg = new Pool(pgConfig);
 try {
+  const uploadDir = resolve(process.cwd(), process.env.UPLOAD_DIR ?? 'uploads');
+  await mkdir(uploadDir, { recursive: true });
+  for (const policy of policyFiles) {
+    await copyFile(
+      resolve(process.cwd(), 'docs', 'demo-policies', 'files', 'pdf', policy.pdf),
+      resolve(uploadDir, policy.pdf)
+    );
+  }
+
   await mongo.connect();
   const db = mongo.db(mongoDbName);
   const contents = db.collection('document_contents');
@@ -87,8 +105,8 @@ try {
       versionId,
       documentId,
       category: policy.category,
-      fileName: policy.file,
-      mimeType: 'text/markdown',
+      fileName: policy.pdf,
+      mimeType: 'application/pdf',
       pageCount: 1,
       pages: [{ n: 1, text }],
       sections: sections.map((section) => ({ heading: section.heading, level: section.level, pageStart: 1, lineStart: section.line })),
@@ -118,7 +136,7 @@ try {
     }
     console.log(`Seeded ${policy.file}: ${chunkTexts.length} MongoDB chunk(s).`);
   }
-  console.log('Synthetic policy content seeded. No embeddings are created in Phase 1; the embedding worker adds those later.');
+  console.log('Synthetic policy content seeded. Run npm run db:embeddings to create local vectors.');
 } finally {
   await pg.end();
   await mongo.close();

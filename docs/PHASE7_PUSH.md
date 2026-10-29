@@ -1,14 +1,17 @@
 # Push — Phase 7 finish record
 
-## Finished
+## Completed
 
-- Added `QUERIES.md`, `NOSQL_VECTOR.md`, and `RUBRIC_CHECKLIST.md` to connect the implementation to the DBMS query and rubric evidence.
-- Updated the README setup and project status, demo walkthrough, screenshot inventory, Phase 1 snapshot, and testing matrix to reflect Push Phases 2–6.
-- Added integration scenarios for search, acknowledgments, and coverage, plus a rollback-safe SQL test for expired-only control mappings.
-- The Next.js production build completed and listed the Search, My Policies, acknowledgments, and coverage routes.
+- Added `QUERIES.md`, `NOSQL_VECTOR.md`, and `RUBRIC_CHECKLIST.md` to connect the implementation to DBMS query concepts and rubric evidence.
+- Added the synthetic policy source set and generated PDF/DOCX demo artifacts.
+- Added an isolated integration validation command and expanded the test matrix for Mongo compensation and version-specific acknowledgment reset.
+- Fixed the similar-policy route ordering so Admin-only dependency middleware does not shadow it.
+- The frontend production build generates all 15 app routes; integrated lint, API tests, SQL tests, and local model checks are recorded in `TESTING.md`.
 
-## Verification still needed on a machine with Docker Desktop
+## Remaining presentation evidence
 
-This workspace has no `.env`; Docker Desktop is not present in the app inventory, and `docker compose ps` cannot connect to `dockerDesktopLinuxEngine`. Therefore the PostgreSQL/MongoDB migrations, Jest integration suite, SQL tests, model-backed semantic search, and real browser screenshots could not be run here. `TESTING.md` records this accurately and gives the exact setup/run order. No screenshots were fabricated.
+- Capture real screenshots for the states listed in `SCREENSHOTS.md` after starting the app locally.
+- Visually inspect the generated DOCX files in Word/LibreOffice. The Office Open XML structure and extracted text were checked; visual rendering was unavailable in this environment.
+- Run a current registry-backed NPM audit when npm registry access is available. The previous audit attempt could not reach `registry.npmjs.org` and the install reported five low-severity advisories.
 
-All regulation/control examples and demo policies remain synthetic and illustrative.
+All regulations, controls, and policy examples are synthetic and illustrative.

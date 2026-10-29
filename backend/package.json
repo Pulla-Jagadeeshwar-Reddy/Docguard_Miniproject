@@ -8,6 +8,7 @@
     "build": "tsc -p tsconfig.json",
     "start": "node dist/server.js",
     "embeddings:seed": "tsx src/scripts/embed-existing.ts",
+    "embedding:check": "node dist/scripts/check-embedding.js",
     "lint": "tsc --noEmit -p tsconfig.json",
     "test": "npm run build && node --experimental-vm-modules ../node_modules/jest/bin/jest.js --config jest.config.cjs --runInBand"
   },

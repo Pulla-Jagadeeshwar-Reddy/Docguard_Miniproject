@@ -1,6 +1,6 @@
 # Screenshot Capture List
 
-No screenshots are fabricated or included here. Capture these Pull-owned states from the running app and attach them to the final project documentation.
+No screenshots are captured or fabricated in the repository yet. Capture these states from the running integrated app and attach the real images to the final project documentation.
 
 | # | Page | State to capture |
 |---:|---|---|
@@ -15,9 +15,7 @@ No screenshots are fabricated or included here. Capture these Pull-owned states 
 | 9 | `/admin/break-glass` | Pending request with justification and Admin review actions. |
 | 10 | `/dashboard` or `/documents` | Notification bell open with unread count and a related policy notice. |
 
-Push should append its own search, acknowledgment, and coverage page states after those features are implemented and verified.
-
-## Push pages
+## Search, acknowledgment, and coverage pages
 
 | # | Page | State to capture |
 |---:|---|---|

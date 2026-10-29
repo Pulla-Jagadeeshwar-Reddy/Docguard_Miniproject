@@ -71,6 +71,11 @@ INSERT INTO document_categories(category_name, description) VALUES
   ('Privacy', 'Privacy and information-handling policy category.'),
   ('Clinical Operations', 'Clinical workflow and procedure policy category.'),
   ('Administration', 'Administrative policy category.'),
+  ('Facilities Safety', 'Illustrative facilities and fire safety policies.'),
+  ('Medication Safety', 'Illustrative medication handling policies.'),
+  ('Waste Management', 'Illustrative waste handling policies.'),
+  ('Emergency Preparedness', 'Illustrative incident response and continuity policies.'),
+  ('Records Management', 'Illustrative retention and information lifecycle policies.'),
   ('Compliance', 'Compliance and accreditation policy category.')
 ON CONFLICT (category_name) DO NOTHING;
 

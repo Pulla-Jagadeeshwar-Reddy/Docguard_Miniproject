@@ -1,5 +1,6 @@
 -- Push-owned SQL checks. These tests deliberately provoke constraint violations
 -- inside subtransactions, so they leave no invalid rows behind.
+BEGIN;
 DO $$
 DECLARE
   test_user_id INT;
@@ -12,6 +13,12 @@ DECLARE
   test_version INT;
   test_control INT;
   test_regulation INT;
+  test_assignment INT;
+  test_nurse_id INT;
+  test_nurse_role_id INT;
+  test_nurse_department_id INT;
+  old_version_id INT;
+  new_version_id INT;
   due DATE := CURRENT_DATE + 10;
 BEGIN
   SELECT user_id INTO test_user_id FROM users WHERE email = 'doctor1@docuguard.local';
@@ -123,6 +130,43 @@ BEGIN
     RAISE EXCEPTION 'Expired-only mandatory control was not reported as a coverage gap.';
   END IF;
 
+  -- Acknowledgments point at a specific version. A replacement approval must
+  -- therefore return the same assignment to pending without storing pending rows.
+  SELECT user_id, role_id, department_id INTO test_nurse_id, test_nurse_role_id, test_nurse_department_id
+  FROM users WHERE email = 'nurse1@docuguard.local';
+  SELECT current_version_id INTO old_version_id FROM documents WHERE document_id = doc_one;
+  INSERT INTO policy_assignments(document_id, target_role_id, target_department_id, assigned_by, due_date)
+  VALUES (doc_one, test_nurse_role_id, test_nurse_department_id, admin_id, CURRENT_DATE + 10)
+  RETURNING assignment_id INTO test_assignment;
+  INSERT INTO acknowledgments(assignment_id, user_id, version_id)
+  VALUES (test_assignment, test_nurse_id, old_version_id);
+  IF NOT EXISTS (
+    SELECT 1 FROM v_ack_compliance
+    WHERE assignment_id = test_assignment AND acknowledged_users = 1 AND pending_users = 0
+  ) THEN
+    RAISE EXCEPTION 'Acknowledgment was not counted for its current version.';
+  END IF;
+  INSERT INTO document_versions(
+    document_id, version_number, file_path, mongo_content_id, checksum,
+    uploaded_by, effective_date, version_status
+  )
+  SELECT doc_one,
+         COALESCE(max(version_number), 0) + 1,
+         'phase7-ack-version-reset.pdf', 'phase7-ack-version-reset-content', repeat('f', 64),
+         test_user_id, CURRENT_DATE, 'pending_review'
+  FROM document_versions WHERE document_id = doc_one
+  RETURNING version_id INTO new_version_id;
+  UPDATE document_versions
+  SET version_status = 'approved', approved_by = approver_id, approved_at = now()
+  WHERE version_id = new_version_id;
+  IF NOT EXISTS (
+    SELECT 1 FROM v_ack_compliance
+    WHERE assignment_id = test_assignment AND acknowledged_users = 0 AND pending_users = 1
+  ) THEN
+    RAISE EXCEPTION 'New approved version did not reset acknowledgment completion.';
+  END IF;
+
   RAISE NOTICE 'Push SQL constraint tests passed.';
 END;
 $$;
+ROLLBACK;

@@ -17,8 +17,9 @@
     "db:mongo:seed": "node database/mongo/seed.js",
     "db:mongo:analytics": "node database/mongo/aggregations.js",
     "db:embeddings": "npm run embeddings:seed --workspace backend",
+    "model:check": "npm run build --workspace backend && npm run embedding:check --workspace backend",
     "db:test": "powershell -NoProfile -ExecutionPolicy Bypass -File database/postgres/run_all.ps1 -TestOnly",
-    "db:rebuild-test": "powershell -NoProfile -ExecutionPolicy Bypass -File database/postgres/run_all.ps1 -Reset -Test"
+    "db:rebuild-test": "powershell -NoProfile -ExecutionPolicy Bypass -File database/postgres/run_isolated_validation.ps1"
   },
   "devDependencies": {
     "concurrently": "^9.2.1"

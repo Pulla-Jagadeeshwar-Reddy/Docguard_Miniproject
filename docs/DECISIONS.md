@@ -62,6 +62,13 @@
 - Audit verification takes the same transaction advisory lock as the access-log hash trigger, rather than a table write lock, so verification sees a stable chain while the restricted API role remains unable to update or delete logs.
 - The document integration test uses one fixed synthetic PDF fixture and leaves its records and access events in the demo database. This keeps tests repeatable and respects the audit table's insert-only rule; `npm run db:rebuild-test` resets the local demo schema when a clean state is needed.
 - Tailwind CSS is configured through PostCSS. The frontend production build uses Next.js webpack because the default Turbopack CSS worker exited in this Windows environment; the webpack build compiled and generated all routes successfully.
+- The official Transformers.js package is currently published as `@huggingface/transformers`; the project keeps the required local `Xenova/all-MiniLM-L6-v2` model and uses that package name rather than the retired `@xenova/transformers` scope.
+- Jest mocks the model pipeline to avoid the ONNX native add-on's cross-realm TypedArray issue in Jest VM modules. The real model is checked in a plain Node process and is also exercised when the integration setup embeds the demo policies.
+- The Admin-only dependency router has router-wide role middleware. The shared similar-policy route is mounted before it so Staff/Doctor/Nurse requests are not accidentally denied before route matching.
+- Search/demo completion adds nine synthetic policy source texts to the three existing examples, and generates 12 one-page PDF and 12 DOCX demo files from those sources. They are educational examples, not clinical guidance. The PDFs were rendered and visually inspected; DOCX files were package/text validated, but visual rendering remains unverified because LibreOffice is not installed and the computer-use session was stopped by the user.
+- `db:rebuild-test` now creates random PostgreSQL and MongoDB databases and drops only those databases in `finally`. This avoids risking the configured project database while still testing the complete migration and seed path.
+- SQL Push tests are wrapped in an explicit transaction and roll back fixtures, allowing both the initial migration test and the repeat `-TestOnly` pass to run cleanly.
+- The integrated UI screenshots are still pending capture. No screenshot images or browser observations have been fabricated.
 
 ## Phase 4
 

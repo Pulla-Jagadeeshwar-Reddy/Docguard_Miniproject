@@ -43,8 +43,10 @@ app.use("/api/versions", versionsRouter);
 app.use("/api/audit", auditRouter);
 app.use("/api/notifications", notificationsRouter);
 app.use("/api/dashboard", dashboardRouter);
-app.use("/api/documents", dependenciesRouter);
+// Mount the specific similarity route first. The dependency router is Admin-only
+// and has router-wide middleware, so mounting it earlier shadows this shared route.
 app.use("/api/documents", similarRouter);
+app.use("/api/documents", dependenciesRouter);
 app.use("/api/analytics", analyticsRouter);
 app.use("/api/acknowledgments", acknowledgmentsRouter);
 app.use("/api/assignments", assignmentsRouter);

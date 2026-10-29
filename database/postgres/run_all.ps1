@@ -4,7 +4,8 @@ param(
   [switch]$Test,
   [switch]$TestOnly,
   [switch]$AuthOnly,
-  [switch]$DocumentsOnly
+  [switch]$DocumentsOnly,
+  [string]$DatabaseName
 )
 
 $ErrorActionPreference = 'Stop'
@@ -21,12 +22,15 @@ Get-Content -LiteralPath $envPath | ForEach-Object {
   }
 }
 $adminUser = $settings['POSTGRES_USER']
-$database = $settings['POSTGRES_DB']
+$database = if ($DatabaseName) { $DatabaseName } else { $settings['POSTGRES_DB'] }
 $runtimePassword = $settings['PG_PASSWORD']
 if (-not $adminUser -or -not $database) {
   throw '.env must define POSTGRES_USER and POSTGRES_DB for migrations.'
 }
 if (-not $runtimePassword) { throw '.env must define PG_PASSWORD for the runtime database role.' }
+if ($database -notmatch '^[a-zA-Z0-9_]+$') {
+  throw 'DatabaseName must contain only letters, numbers, and underscores.'
+}
 
 function Invoke-SqlFile([string]$filePath, [switch]$NoTransaction) {
   $file = Get-Item -LiteralPath $filePath

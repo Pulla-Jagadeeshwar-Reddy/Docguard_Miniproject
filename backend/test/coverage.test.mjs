@@ -16,7 +16,7 @@ test("Admin coverage matrix summarizes controls and other roles are denied", asy
   const response = await admin.get("/api/compliance/coverage");
   assert.equal(response.status, 200);
   assert.ok(response.body.regulations.some(item => item.regulationName === "NABH"));
-  assert.ok(response.body.controls.some(item => item.controlCode === "IC-01"));
+  assert.ok(response.body.controls.some(item => item.regulationName === "NABH" && item.controlCode === "EDU-01"));
   assert.ok(response.body.controls.every(item => typeof item.isCovered === "boolean"));
 
   const staff = await signIn("staff1@docuguard.local", "DG-Demo-Staff-01!");
