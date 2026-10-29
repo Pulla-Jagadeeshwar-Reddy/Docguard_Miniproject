@@ -77,4 +77,11 @@ ORDER BY log_id DESC LIMIT 5;
 SELECT verify_audit_chain();
 ```
 
-The full Push-owned feature sequence and final time allocation should be added by Push after their demo pages and tests are verified.
+## Push — search and MongoDB analytics (about 4 minutes)
+
+1. As a Nurse, open **Search** and query `needle prick injury` in semantic mode. Show the synthetic Sharps Injury policy and its snippet. Explain that PostgreSQL applies `fn_accessible_document_ids` before ranking or retrieving snippets.
+2. Repeat with keyword mode using a policy phrase. Compare it with semantic mode and point to hybrid rank fusion.
+3. Open a permitted document and show **Related policies** with cosine-similarity scores.
+4. Sign in as Admin and show the dashboard's frequent indexed terms. Explain the MongoDB `$unwind`, `$group`, and `$facet` aggregation behind the widget.
+
+Before the demo, apply SQL migrations, run `npm run db:mongo:indexes`, `npm run db:mongo:seed`, and `npm run db:embeddings`. The first embedding run downloads the local model. Do not use real patient documents; all supplied policies are fictional examples.

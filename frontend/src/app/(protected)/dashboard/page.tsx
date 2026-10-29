@@ -10,15 +10,23 @@ type DashboardData = {
   expiringSoon: { id: number; title: string; category: string; versionNumber: number; expiryDate: string; daysRemaining: number }[];
   accessActivity: { date: string; action: string; count: number; breakGlassCount: number }[];
 };
+type KeywordAnalytics = { topKeywords: { _id: { category: string; keyword: string }; count: number }[] };
 
 export default function DashboardPage() {
   const [data, setData] = useState<DashboardData | null>(null);
   const [error, setError] = useState("");
+  const [keywords, setKeywords] = useState<KeywordAnalytics | null>(null);
 
   useEffect(() => {
     api<DashboardData>("/dashboard")
       .then(setData)
       .catch(caught => setError(caught instanceof Error ? caught.message : "Dashboard data could not be loaded"));
+  }, []);
+
+  useEffect(() => {
+    api<{ user: { role: string } }>("/auth/me")
+      .then(({ user }) => user.role === "Admin" ? api<KeywordAnalytics>("/analytics/keywords").then(setKeywords) : undefined)
+      .catch(() => undefined);
   }, []);
 
   const activityByDate = useMemo(() => {
@@ -78,6 +86,16 @@ export default function DashboardPage() {
           )}
         </section>
       </div>
+      {keywords && <section style={{ ...cardStyle, marginTop: 18 }}>
+        <h2 style={{ marginTop: 0, fontSize: 18 }}>Frequently indexed policy terms</h2>
+        {keywords.topKeywords.length === 0 ? <p style={{ color: "#5c6d68" }}>No approved policy text is indexed yet.</p> :
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: "8px 20px" }}>
+            {keywords.topKeywords.slice(0, 8).map(item => <div key={`${item._id.category}-${item._id.keyword}`} style={{ display: "flex", justifyContent: "space-between", gap: 12, borderBottom: "1px solid #edf1ef", padding: "7px 0" }}>
+              <span>{item._id.keyword} <small style={{ color: "#687872" }}>· {item._id.category}</small></span>
+              <strong>{item.count}</strong>
+            </div>)}
+          </div>}
+      </section>}
     </section>
   );
 }

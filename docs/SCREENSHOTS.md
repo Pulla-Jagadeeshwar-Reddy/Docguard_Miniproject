@@ -16,3 +16,11 @@ No screenshots are fabricated or included here. Capture these Pull-owned states 
 | 10 | `/dashboard` or `/documents` | Notification bell open with unread count and a related policy notice. |
 
 Push should append its own search, acknowledgment, and coverage page states after those features are implemented and verified.
+
+## Push pages
+
+| # | Page | State to capture |
+|---:|---|---|
+| 11 | `/search` | Hybrid query, category filter, result snippet, and mode labels for an approved synthetic policy. |
+| 12 | `/documents/[id]` | Related-policies panel with similarity scores. |
+| 13 | `/dashboard` | Admin keyword analytics widget populated from MongoDB policy content. |

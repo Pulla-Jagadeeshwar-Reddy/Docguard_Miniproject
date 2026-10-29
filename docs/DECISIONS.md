@@ -33,6 +33,12 @@
 - Similar-document pairs are refreshed from average current-version vectors after approval and daily at runtime. Results are filtered again through the caller's accessible-document function.
 - The seed embedding command fills approved demo versions after Mongo text seeding. It skips versions already represented in `document_chunks`.
 
+## Phase 4
+
+- The search page defaults to hybrid search and passes the selected category id to the API. Search result links open the existing document detail endpoint, which records the normal access event.
+- Keyword analytics only includes current, active, approved, unexpired versions from PostgreSQL and is Admin-only. The dashboard requests it only for an Admin session.
+- The related-policy panel is hidden when its endpoint fails and explains when no current similar policies are cached.
+
 ## Phase 3
 
 - Push's MongoDB extraction/embedding service is not present on this branch yet. `backend/src/services/ingest.ts` is the explicitly temporary work-split stub: it returns clearly labeled synthetic Mongo references and no chunks, and compensation/embedding queue methods are no-ops until Push replaces them. The UI marks document text extraction/search indexing as pending. Re-upload policies after Push's ingestion service is integrated so real Mongo content and chunks are created.

@@ -1,5 +1,6 @@
 import { mongoClient, pgPool } from "../config/databases.js";
 import { queueEmbedding } from "../services/ingest.js";
+import { rebuildSimilarDocuments } from "../services/similar-documents.js";
 
 try {
   const versions = await pgPool.query(
@@ -21,6 +22,7 @@ try {
       console.warn(`Skipped version ${versionId}: ${error instanceof Error ? error.message : "no content available"}`);
     }
   }
+  await rebuildSimilarDocuments();
   console.log(`Embedded ${indexed} approved version(s).`);
 } finally {
   await pgPool.end();
