@@ -31,13 +31,15 @@ export default function ProtectedLayout({ children }: { children: ReactNode }) {
     { href: "/dashboard", label: "Overview" },
     { href: "/documents", label: "Documents" },
     { href: "/search", label: "Search" },
+    { href: "/my-policies", label: "My Policies" },
     ...(user.role === "Doctor" || user.role === "Nurse" ? [
       { href: "/break-glass", label: "Emergency access" }
     ] : []),
     ...(user.role === "Admin" ? [
       { href: "/admin/users", label: "User administration" },
       { href: "/admin/audit", label: "Audit log" },
-      { href: "/admin/break-glass", label: "Emergency reviews" }
+      { href: "/admin/break-glass", label: "Emergency reviews" },
+      { href: "/admin/acknowledgments", label: "Acknowledgments" }
     ] : [])
   ];
   return (

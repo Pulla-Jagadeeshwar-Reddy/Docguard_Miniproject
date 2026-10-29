@@ -11,11 +11,13 @@ type DashboardData = {
   accessActivity: { date: string; action: string; count: number; breakGlassCount: number }[];
 };
 type KeywordAnalytics = { topKeywords: { _id: { category: string; keyword: string }; count: number }[] };
+type AcknowledgmentSummary = { assignments: { eligible_users: number; acknowledged_users: number }[] };
 
 export default function DashboardPage() {
   const [data, setData] = useState<DashboardData | null>(null);
   const [error, setError] = useState("");
   const [keywords, setKeywords] = useState<KeywordAnalytics | null>(null);
+  const [acknowledgments, setAcknowledgments] = useState<AcknowledgmentSummary | null>(null);
 
   useEffect(() => {
     api<DashboardData>("/dashboard")
@@ -25,7 +27,10 @@ export default function DashboardPage() {
 
   useEffect(() => {
     api<{ user: { role: string } }>("/auth/me")
-      .then(({ user }) => user.role === "Admin" ? api<KeywordAnalytics>("/analytics/keywords").then(setKeywords) : undefined)
+      .then(({ user }) => user.role === "Admin" ? Promise.all([
+        api<KeywordAnalytics>("/analytics/keywords"),
+        api<AcknowledgmentSummary>("/compliance/acknowledgments")
+      ]).then(([keywordData, acknowledgmentData]) => { setKeywords(keywordData); setAcknowledgments(acknowledgmentData); }) : undefined)
       .catch(() => undefined);
   }, []);
 
@@ -86,6 +91,17 @@ export default function DashboardPage() {
           )}
         </section>
       </div>
+      {acknowledgments && (() => {
+        const eligible = acknowledgments.assignments.reduce((total, item) => total + Number(item.eligible_users), 0);
+        const done = acknowledgments.assignments.reduce((total, item) => total + Number(item.acknowledged_users), 0);
+        const percent = eligible ? Math.round(100 * done / eligible) : 0;
+        return <section style={{ ...cardStyle, marginTop: 18 }}>
+          <h2 style={{ marginTop: 0, fontSize: 18 }}>Policy acknowledgments</h2>
+          <p style={{ color: "#5c6d68" }}>{done} of {eligible} assigned policy reads are complete.</p>
+          <progress value={percent} max={100} aria-label={`Acknowledgment completion ${percent}%`} style={{ width: "100%" }} />
+          <strong>{percent}% complete</strong>
+        </section>;
+      })()}
       {keywords && <section style={{ ...cardStyle, marginTop: 18 }}>
         <h2 style={{ marginTop: 0, fontSize: 18 }}>Frequently indexed policy terms</h2>
         {keywords.topKeywords.length === 0 ? <p style={{ color: "#5c6d68" }}>No approved policy text is indexed yet.</p> :

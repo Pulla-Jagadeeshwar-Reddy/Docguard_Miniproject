@@ -84,4 +84,10 @@ SELECT verify_audit_chain();
 3. Open a permitted document and show **Related policies** with cosine-similarity scores.
 4. Sign in as Admin and show the dashboard's frequent indexed terms. Explain the MongoDB `$unwind`, `$group`, and `$facet` aggregation behind the widget.
 
+## Push — acknowledgment workflow (about 2 minutes)
+
+1. Sign in as a Nurse and open **My Policies**. Open an assigned policy, then record the current-version acknowledgment.
+2. Sign in as Admin and open **Acknowledgments**. Assign an approved policy to a role or department and show the updated completion table and department chart.
+3. Explain that acknowledgment rows point to a version id, so approving a new version makes that assignment pending again.
+
 Before the demo, apply SQL migrations, run `npm run db:mongo:indexes`, `npm run db:mongo:seed`, and `npm run db:embeddings`. The first embedding run downloads the local model. Do not use real patient documents; all supplied policies are fictional examples.

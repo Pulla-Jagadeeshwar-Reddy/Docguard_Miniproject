@@ -39,6 +39,12 @@
 - Keyword analytics only includes current, active, approved, unexpired versions from PostgreSQL and is Admin-only. The dashboard requests it only for an Admin session.
 - The related-policy panel is hidden when its endpoint fails and explains when no current similar policies are cached.
 
+## Phase 5
+
+- Admin assignment requests target exactly one role or department. They require an active policy with an approved, unexpired current version and a due date no earlier than today.
+- Acknowledgment rows are scoped to the signed-in user and the assignment's current version. Duplicate submissions are idempotent; a newly approved version naturally returns the assignment to pending through the version-specific join.
+- The Admin completion chart uses the department anti-join view. Ineligible or inactive users are not included in completion denominators.
+
 ## Phase 3
 
 - Push's MongoDB extraction/embedding service is not present on this branch yet. `backend/src/services/ingest.ts` is the explicitly temporary work-split stub: it returns clearly labeled synthetic Mongo references and no chunks, and compensation/embedding queue methods are no-ops until Push replaces them. The UI marks document text extraction/search indexing as pending. Re-upload policies after Push's ingestion service is integrated so real Mongo content and chunks are created.
