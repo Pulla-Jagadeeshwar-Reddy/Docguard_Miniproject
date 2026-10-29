@@ -55,7 +55,9 @@ These credentials are for the synthetic local demo only. PostgreSQL migrations r
 
 After the databases are healthy and `npm run db:apply` has completed, start the API and web app with `npm run dev`. Sign in at `http://localhost:3000/login`. The API sets an HTTP-only session cookie; passwords and password hashes are never returned. Admins can manage accounts from the User administration page.
 
-Run API integration tests with `npm run test --workspace backend`. The document workflow test intentionally leaves one synthetic policy and append-only audit events in the database; use `npm run db:rebuild-test` to reset the local demo schema. Until Push merges its ingestion service, uploaded files are stored locally and PostgreSQL versions are created, while text extraction and search indexing remain visibly pending.
+Run API integration tests with `npm run test --workspace backend`. The document workflow test intentionally leaves one synthetic policy and append-only audit events in the database; use `npm run db:rebuild-test` to reset the local demo schema.
+
+Uploaded PDF and DOCX files are extracted into MongoDB and divided into overlapping text chunks. The local `Xenova/all-MiniLM-L6-v2` model generates 384-dimensional vectors for PostgreSQL; the model is downloaded and cached the first time an upload or approval runs. See [`docs/PHASE2_PUSH.md`](docs/PHASE2_PUSH.md) for runtime details and OCR limitations.
 
 ## Troubleshooting
 
@@ -65,4 +67,4 @@ Run API integration tests with `npm run test --workspace backend`. The document 
 
 ## Project status
 
-Phase 3 Pull documents, versions, approvals, and audit. Push's ingestion module is still a temporary integration stub until that branch is merged; see `docs/DECISIONS.md`.
+Pull has completed Phases 1–7. Push Phase 1 (search/compliance database) and Phase 2 (ingestion/embeddings) are implemented on the current branch. Push phases 3–7 remain in progress; see [`docs/WORK_SPLIT.md`](docs/WORK_SPLIT.md) and [`docs/TESTING.md`](docs/TESTING.md).
