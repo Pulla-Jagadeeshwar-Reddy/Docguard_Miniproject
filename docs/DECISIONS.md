@@ -28,6 +28,13 @@
 
 ## Phase 3
 
+- Search candidates are filtered by `fn_accessible_document_ids` in PostgreSQL before ranking or fetching Mongo snippets. All search modes require an active document and approved, unexpired current version.
+- Keyword uses PostgreSQL `websearch_to_tsquery`/`ts_rank_cd`, semantic uses the shared 384-dimensional local model, and hybrid merges ranked chunks with reciprocal-rank fusion (60 constant). Search mode, category, and query are parameterized and each search writes one log row.
+- Similar-document pairs are refreshed from average current-version vectors after approval and daily at runtime. Results are filtered again through the caller's accessible-document function.
+- The seed embedding command fills approved demo versions after Mongo text seeding. It skips versions already represented in `document_chunks`.
+
+## Phase 3
+
 - Push's MongoDB extraction/embedding service is not present on this branch yet. `backend/src/services/ingest.ts` is the explicitly temporary work-split stub: it returns clearly labeled synthetic Mongo references and no chunks, and compensation/embedding queue methods are no-ops until Push replaces them. The UI marks document text extraction/search indexing as pending. Re-upload policies after Push's ingestion service is integrated so real Mongo content and chunks are created.
 - The API still calls the ingestion compensation interface and removes its local file on a failed PostgreSQL transaction. The forced mid-upload Mongo compensation test (blueprint test 8) cannot be meaningfully exercised until Push's real Mongo ingestion implementation is available; no test claims that stub writes or deletes MongoDB content.
 - Uploads are persisted under the configured `UPLOAD_DIR` outside Next.js's public directory, using random server filenames; PostgreSQL stores only that opaque file name. A secure version download endpoint checks `fn_accessible_document_ids` and writes an access-log event before streaming.

@@ -33,6 +33,7 @@ Start PostgreSQL and MongoDB with `docker compose up -d`; PostgreSQL is publishe
 - `npm run db:rebuild` drops and recreates every object in the database's `public` schema, then reapplies migrations. Use only with the dedicated local project database; it preserves Docker volumes but removes their schema objects.
 - `npm run db:test` runs the SQL tests against an already-migrated schema.
 - `npm run db:rebuild-test` rebuilds the schema and runs the SQL tests.
+- `npm run db:mongo:indexes` creates or upgrades MongoDB indexes; `npm run db:mongo:seed` loads the synthetic policy text after SQL migrations; `npm run db:embeddings` indexes approved seed versions for semantic search.
 
 Pull's SQL slice currently provides 14 core tables, core views/functions/triggers, seed accounts, and the runtime role. Migration 09 adds duplicate-checksum enforcement for policy versions. Push's eight search/compliance tables and their SQL files are separate work.
 
