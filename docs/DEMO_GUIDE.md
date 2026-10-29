@@ -1,6 +1,6 @@
-# Pull Demo Segment
+# DocuGuard Joint Demo
 
-This is Pull's part of the joint demo, following the order in `docs/WORK_SPLIT.md`. It covers the database design, authentication, document workflow, dashboard/graph, audit chain, and break-glass flow. Push should add its own verified search, acknowledgment, coverage, and analytics segment before the team calls this a complete 20-minute project script.
+This is the joint demo following the order in `docs/WORK_SPLIT.md`. It covers database design, authentication, document workflow, dashboard/graph, audit chain, break-glass, search, acknowledgments, and regulatory coverage. Complete the full database-backed test run and capture the listed live screenshots before presenting the behaviors as verified.
 
 ## Setup before presenting
 

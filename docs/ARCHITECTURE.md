@@ -35,11 +35,11 @@ The PostgreSQL schema is the source of truth for users, roles, permissions, docu
 3. PostgreSQL writes document and version rows in a transaction. Approval runs as a separate Admin action; a database CHECK and trigger enforce maker-checker and current-version transitions.
 4. Access events are inserted in that transaction. A PostgreSQL trigger serializes inserts and builds the SHA-256 audit chain.
 
-**Current integration limit:** `backend/src/services/ingest.ts` is still the clearly marked Push integration stub. It produces synthetic Mongo identifiers and no chunks; extraction, embedding, Mongo compensation, and post-approval embedding are not implemented by that stub. The UI marks indexing as pending. Do not describe uploads from this code as searchable content.
+The ingestion service extracts text from PDF and DOCX files, stores document content and overlapping chunks in MongoDB, links generated ids to PostgreSQL versions, and compensates failed SQL writes by deleting Mongo content. A delayed orphan sweep handles failed compensation. After the SQL transaction commits, a local 384-dimensional embedding model indexes chunks in PostgreSQL; the document UI reports when indexing is pending. Scanned-image OCR is out of scope. Demo Markdown policies are loaded separately by the Mongo seed command.
 
 ### Search
 
-The current `/api/search` implementation supports keyword search. It first selects active, approved, unexpired document candidates through `fn_accessible_document_ids(user_id)`, then searches MongoDB content for those version ids. The PostgreSQL vector schema and keyword indexes exist, but the current ingestion stub does not populate them and there is no semantic or hybrid search implementation on this branch.
+`/api/search` supports keyword, semantic, and hybrid search. PostgreSQL first selects active, approved, unexpired document candidates through `fn_accessible_document_ids(user_id)`, then ranks their full-text or vector-indexed chunks (hybrid mode uses reciprocal-rank fusion). MongoDB supplies the returned snippet text. Similar-document results are also restricted to documents the caller can access.
 
 ### Dashboard, notifications, and dependency impact
 

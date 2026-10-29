@@ -1,20 +1,18 @@
 # Testing and verification
 
-This status separates checks run during the Push implementation from integration scenarios that require the local databases.
+This status records checks against the integrated `main` code and separates them from scenarios that require reachable databases.
 
-## Phase 7 workspace checks
+## Integrated `main` workspace checks (2026-10-29)
 
 | Check | Result |
 |---|---|
-| `npm run build --workspace backend` | Passed on Phase 6 changes. TypeScript compiled. |
-| `npm run lint --workspace frontend` | Passed on Phase 6 changes. Frontend TypeScript check completed. |
-| `npm run build --workspace frontend` | Passed on Phase 7 changes. Next.js generated the Search, My Policies, acknowledgment, and coverage routes. |
-| `git diff --check` | Passed; only Git's LF-to-CRLF notices were reported for new files. |
-| `npm run test --workspace backend` | Not run. No `.env` or database target was present, and the Docker Desktop Linux engine was unavailable. |
-| `npm run db:test` | Not run for the same Docker/database reason. |
-| Browser screenshots | Not captured because the app could not be run against a database. See `SCREENSHOTS.md` for required states. |
+| `npm run lint` | Passed for backend and frontend TypeScript. |
+| `npm run build` | Backend TypeScript build passed. Frontend Next.js production build passed and generated all listed routes. The frontend build needed to run outside the restricted sandbox because its worker process could not start inside it. |
+| `npm run test --workspace backend` | Attempted. With local socket access, all 8 suites / 17 tests failed at database-dependent setup: `/health` returned 503, PostgreSQL at the configured `localhost:5433` refused connections, and login requests returned 500. This does not verify feature behavior. The restricted attempt separately failed because test-server sockets were denied. |
+| `npm run db:test` | Not run: Docker engine access is denied in this workspace and the database services are not reachable here. |
+| Browser screenshots | Not captured because the app could not be run against reachable databases. See `SCREENSHOTS.md` for required states. |
 
-The earlier Pull Phase 7 report recorded 5 Jest suites/10 tests passing before Push's Phase 2–6 features were added. That historical result does not verify the new Push flows.
+Historical Pull Phase 7 results predate the merged Push flows and do not verify the integrated feature set.
 
 ## Test coverage in the repository
 
@@ -34,27 +32,27 @@ The earlier Pull Phase 7 report recorded 5 Jest suites/10 tests passing before P
 
 | # | Scenario | Implementation/evidence | Current status |
 |---:|---|---|---|
-| 1 | Wrong-password login is generic | `backend/test/auth.test.mjs` | Previously passed in Pull's Phase 7 run; not rerun here |
+| 1 | Wrong-password login is generic | `backend/test/auth.test.mjs` | Not verified on integrated `main`; current Jest run cannot reach the database |
 | 2 | SQL injection text in search | Parameterized PostgreSQL query; `search.test.mjs` sends SQL-shaped text | Added; not run here |
 | 3 | Restricted role cannot find a policy it cannot read | `fn_accessible_document_ids` CTE; `search.test.mjs` checks Staff cannot see Patient Identification | Added; not run here; exact Nurse/Admin-only fixture remains absent |
-| 4 | Upload identical file twice | Checksum uniqueness and `documents.test.mjs` | Previously passed; not rerun here |
-| 5 | Uploader cannot approve own version | SQL CHECK and document API test | Previously passed; not rerun here |
-| 6 | Expiry before effective date | SQL CHECK negative test | Previously passed; not rerun here |
-| 7 | Approving a new version supersedes old and updates current pointer | Version trigger and document API test | Previously passed; not rerun here |
+| 4 | Upload identical file twice | Checksum uniqueness and `documents.test.mjs` | Not verified on integrated `main`; database suite blocked |
+| 5 | Uploader cannot approve own version | SQL CHECK and document API test | Not verified on integrated `main`; database suite blocked |
+| 6 | Expiry before effective date | SQL CHECK negative test | Not verified on integrated `main`; SQL suite not run |
+| 7 | Approving a new version supersedes old and updates current pointer | Version trigger and document API test | Not verified on integrated `main`; database suite blocked |
 | 8 | Failure mid-upload removes Mongo data | Upload compensation and orphan sweeper are implemented | Forced-failure integration test still needed |
-| 9 | Runtime role cannot update/delete audit rows | Immutable trigger and runtime grants | Previously passed; not rerun here |
-| 10 | Superuser tampering is detected | `audit_tamper_demo.sql` and verifier | Previously passed; not rerun here |
-| 11 | Short break-glass justification is rejected | SQL/API checks | Previously passed; not rerun here |
-| 12 | Expired override grants no access | Access function negative test | Previously passed at SQL-function level; not rerun here |
+| 9 | Runtime role cannot update/delete audit rows | Immutable trigger and runtime grants | Not verified on integrated `main`; SQL suite not run |
+| 10 | Superuser tampering is detected | `audit_tamper_demo.sql` and verifier | Not verified on integrated `main`; SQL suite not run |
+| 11 | Short break-glass justification is rejected | SQL/API checks | Not verified on integrated `main`; database suite blocked |
+| 12 | Expired override grants no access | Access function negative test | Not verified on integrated `main`; SQL suite not run |
 | 13 | New approved version resets acknowledgment | Version-specific acknowledgment joins and notification trigger | Implemented; dedicated version-reset assertion still needed |
-| 14 | Circular dependency analysis terminates | Recursive CTE and dashboard dependency test | Previously passed; not rerun here |
+| 14 | Circular dependency analysis terminates | Recursive CTE and dashboard dependency test | Not verified on integrated `main`; database suite blocked |
 | 15 | Expired-only mapped policy remains a gap | `push_constraints.sql` rollback fixture | Added; not run here |
 | 16 | Semantic query finds sharps policy | Local embeddings and semantic route; `search.test.mjs` | Added; requires seeded Mongo content/model and was not run here |
 
-## Run the full database-backed checks
+## Run the full database-backed checks on the machine hosting the services
 
-1. Copy `.env.example` to `.env`, set local-only credentials, and start Docker Desktop.
-2. Run `docker compose up -d`, then `npm run db:apply`.
+1. Ensure `.env` points at reachable PostgreSQL and MongoDB services. For a database running on the same machine, use the Compose host ports from `.env.example`; for a database on another machine, use that machine's reachable address and exposed ports.
+2. Start/confirm the services, then run `npm run db:apply` only against the project's intended database. Do not use a rebuild command on a shared or valuable database.
 3. Run `npm run db:mongo:indexes`, `npm run db:mongo:seed`, and `npm run db:embeddings`.
 4. Run `npm run test --workspace backend` and `npm run db:test`.
 5. Capture the real UI states listed in `SCREENSHOTS.md` and update each result after observing it.

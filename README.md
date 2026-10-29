@@ -37,7 +37,7 @@ Start PostgreSQL and MongoDB with `docker compose up -d`; PostgreSQL is publishe
 - `npm run db:rebuild-test` rebuilds the schema and runs the SQL tests.
 - `npm run db:mongo:indexes` creates or upgrades MongoDB indexes; `npm run db:mongo:seed` loads the synthetic policy text after SQL migrations; `npm run db:embeddings` indexes approved seed versions for semantic search.
 
-Pull's SQL slice currently provides 14 core tables, core views/functions/triggers, seed accounts, and the runtime role. Migration 09 adds duplicate-checksum enforcement for policy versions. Push's eight search/compliance tables and their SQL files are separate work.
+The integrated SQL schema includes the core document, access, and audit tables plus search, acknowledgment, and regulatory coverage tables. Numbered migrations apply both contributors' schema slices in order.
 
 Seeded fake demo accounts (passwords are stored as salted bcrypt hashes at cost 12):
 
@@ -58,7 +58,7 @@ These credentials are for the synthetic local demo only. PostgreSQL migrations r
 
 After the databases are healthy and `npm run db:apply` has completed, start the API and web app with `npm run dev`. Sign in at `http://localhost:3000/login`. The API sets an HTTP-only session cookie; passwords and password hashes are never returned. Admins can manage accounts from the User administration page.
 
-Run API integration tests with `npm run test --workspace backend`. The document workflow test intentionally leaves one synthetic policy and append-only audit events in the database; use `npm run db:rebuild-test` to reset the local demo schema.
+Run API integration tests with `npm run test --workspace backend` after both databases are healthy and migrations/seeds are applied. The document workflow test intentionally leaves one synthetic policy and append-only audit events in the database. Do not run `npm run db:rebuild-test` against shared or valuable data; it drops the schema.
 
 Uploaded PDF and DOCX files are extracted into MongoDB and divided into overlapping text chunks. The local `Xenova/all-MiniLM-L6-v2` model generates 384-dimensional vectors for PostgreSQL; the model is downloaded and cached the first time an upload or approval runs. See [`docs/PHASE2_PUSH.md`](docs/PHASE2_PUSH.md) for runtime details and OCR limitations.
 
@@ -79,4 +79,4 @@ Uploaded PDF and DOCX files are extracted into MongoDB and divided into overlapp
 
 ## Project status
 
-Pull has completed Phases 1–7. Push implementation and documentation for Phases 1–7 are committed on the phase branches. Database-backed verification and live screenshots remain pending because Docker Desktop is unavailable in this workspace; see [`docs/TESTING.md`](docs/TESTING.md).
+Pull and Push feature slices are integrated on `main`. TypeScript checks and production builds are verified in the current workspace; database-backed integration and SQL checks still require reachable PostgreSQL and MongoDB services. See [`docs/TESTING.md`](docs/TESTING.md) for the current verification record.

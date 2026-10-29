@@ -51,10 +51,11 @@
 - Regulation scores include mandatory controls only; a regulation with no mandatory controls reports 0.00 rather than 100%.
 - The standard seeded standards/control names are explicitly illustrative educational mappings, not compliance advice or legal interpretations.
 
-## Phase 3
+## Integrated implementation status
 
-- Push's MongoDB extraction/embedding service is not present on this branch yet. `backend/src/services/ingest.ts` is the explicitly temporary work-split stub: it returns clearly labeled synthetic Mongo references and no chunks, and compensation/embedding queue methods are no-ops until Push replaces them. The UI marks document text extraction/search indexing as pending. Re-upload policies after Push's ingestion service is integrated so real Mongo content and chunks are created.
-- The API still calls the ingestion compensation interface and removes its local file on a failed PostgreSQL transaction. The forced mid-upload Mongo compensation test (blueprint test 8) cannot be meaningfully exercised until Push's real Mongo ingestion implementation is available; no test claims that stub writes or deletes MongoDB content.
+- Push's merged ingestion service extracts PDF/DOCX text, stores MongoDB content and chunks, links generated records to SQL versions, and runs compensating deletion plus an orphan sweep. It queues 384-dimensional embeddings after commit. Scanned-image OCR is out of scope.
+- Push's merged search supports keyword, semantic, and hybrid modes, with PostgreSQL permission filtering before rank/snippet retrieval. Similar-policy cache, MongoDB analytics, acknowledgment, and regulatory coverage flows are implemented in the integrated routes and pages.
+- These implementation notes describe the merged code on `main`; database-backed behavior remains subject to the integration test status in `docs/TESTING.md`.
 - Uploads are persisted under the configured `UPLOAD_DIR` outside Next.js's public directory, using random server filenames; PostgreSQL stores only that opaque file name. A secure version download endpoint checks `fn_accessible_document_ids` and writes an access-log event before streaming.
 - Added a unique PostgreSQL checksum index beyond the data dictionary's stated constraints. The blueprint requires identical-file rejection, and the unique index closes the concurrent-upload race that an API-only check cannot prevent.
 - New uploads grant read permission to Admin reviewers and the uploader's role so pending drafts can be reviewed and are visible in the role-filtered policy library. Fine-grained grants for other roles remain managed by database permission rows until a permission-management UI is in scope.
