@@ -1,64 +1,62 @@
-# Testing and Verification
+# Testing and verification
 
-This file distinguishes automated checks that passed in the current Phase 7 workspace from rubric scenarios that remain unverified or unimplemented. It does not claim that all 16 blueprint tests pass.
+This status separates checks run during the Push implementation from integration scenarios that require the local databases.
 
-## Commands and latest observed results
+## Phase 7 workspace checks
 
-| Command | Result |
+| Check | Result |
 |---|---|
-| `npm run test --workspace backend` | **Passed:** 5 Jest suites, 10 tests. Runs Supertest against the configured local PostgreSQL and MongoDB services. |
-| `npm run db:test` | **Partial / non-zero exit:** `audit_tamper_demo.sql` passed and reported tampering at the inserted test row; `core_constraints.sql` passed. `push_constraints.sql` then stopped because the current local database is missing the Push demo policy seed (`demo-infection-control` and `demo-patient-privacy`). |
-| `npm run lint` | **Passed** on the Phase 7 branch; backend and frontend TypeScript checks completed. |
-| `npm run build` | **Passed** on the Phase 7 branch; backend compiled and Next.js generated all current routes. The first sandboxed attempt hit a Windows EPERM writing `.next`; the rerun with workspace permissions passed. |
+| `npm run build --workspace backend` | Passed on Phase 6 changes. TypeScript compiled. |
+| `npm run lint --workspace frontend` | Passed on Phase 6 changes. Frontend TypeScript check completed. |
+| `npm run build --workspace frontend` | Passed on Phase 7 changes. Next.js generated the Search, My Policies, acknowledgment, and coverage routes. |
+| `git diff --check` | Passed; only Git's LF-to-CRLF notices were reported for new files. |
+| `npm run test --workspace backend` | Not run. No `.env` or database target was present, and the Docker Desktop Linux engine was unavailable. |
+| `npm run db:test` | Not run for the same Docker/database reason. |
+| Browser screenshots | Not captured because the app could not be run against a database. See `SCREENSHOTS.md` for required states. |
 
-`npm run db:test` does not reset the database. The database test runner executes SQL test files in filename order. The Pull-owned tamper and core constraint files passed before the Push seed prerequisite stopped the combined command. No fresh-schema rebuild was run for this report.
+The earlier Pull Phase 7 report recorded 5 Jest suites/10 tests passing before Push's Phase 2–6 features were added. That historical result does not verify the new Push flows.
 
-### Audit tamper rehearsal
+## Test coverage in the repository
 
-`database/postgres/tests/audit_tamper_demo.sql` is a standalone, rollback-safe rehearsal. It:
+- `backend/test/auth.test.mjs`: generic login errors, sessions, user authorization, and password-hash exclusion.
+- `backend/test/documents.test.mjs`: duplicate upload, permission-filtered documents, downloads, approval, versioning, and audit.
+- `backend/test/dashboard-dependencies.test.mjs`: dashboard access and cycle-safe dependency traversal.
+- `backend/test/notifications.test.mjs`: notification user isolation and read-state updates.
+- `backend/test/overrides.test.mjs`: break-glass lifecycle and review.
+- `backend/test/search.test.mjs`: semantic retrieval, injected query text, role-filtered search, similar-policy access, and Admin analytics authorization.
+- `backend/test/acknowledgments.test.mjs`: assignment target validation, Nurse visibility/acknowledgment, and Admin completion data.
+- `backend/test/coverage.test.mjs`: Admin authorization, coverage view results, and idempotent policy mapping.
+- `database/postgres/tests/core_constraints.sql`: core database constraints, audit immutability, permissions, and version rules.
+- `database/postgres/tests/push_constraints.sql`: Push schema constraints, coverage scores, and expired-only mandatory-control gap behavior. Test files run in a transaction and roll back.
+- `database/postgres/tests/audit_tamper_demo.sql`: rollback-safe superuser tamper rehearsal.
 
-1. Confirms the audit chain starts intact.
-2. Inserts a synthetic document and a normal access event so the database trigger computes its hashes.
-3. Temporarily disables `trg_audit_immutable` as the Compose database administrator and changes the audit event's IP address.
-4. Calls `verify_audit_chain()` and asserts that it identifies the inserted log id.
-5. Rolls back the entire transaction, including the tampered row and trigger DDL state.
+## Blueprint test matrix
 
-It ran successfully in this workspace; the observed first broken row was `log_id 108`. The SQL test runs only with the migration/Compose administrator. The API runtime role cannot update or delete audit rows.
+| # | Scenario | Implementation/evidence | Current status |
+|---:|---|---|---|
+| 1 | Wrong-password login is generic | `backend/test/auth.test.mjs` | Previously passed in Pull's Phase 7 run; not rerun here |
+| 2 | SQL injection text in search | Parameterized PostgreSQL query; `search.test.mjs` sends SQL-shaped text | Added; not run here |
+| 3 | Restricted role cannot find a policy it cannot read | `fn_accessible_document_ids` CTE; `search.test.mjs` checks Staff cannot see Patient Identification | Added; not run here; exact Nurse/Admin-only fixture remains absent |
+| 4 | Upload identical file twice | Checksum uniqueness and `documents.test.mjs` | Previously passed; not rerun here |
+| 5 | Uploader cannot approve own version | SQL CHECK and document API test | Previously passed; not rerun here |
+| 6 | Expiry before effective date | SQL CHECK negative test | Previously passed; not rerun here |
+| 7 | Approving a new version supersedes old and updates current pointer | Version trigger and document API test | Previously passed; not rerun here |
+| 8 | Failure mid-upload removes Mongo data | Upload compensation and orphan sweeper are implemented | Forced-failure integration test still needed |
+| 9 | Runtime role cannot update/delete audit rows | Immutable trigger and runtime grants | Previously passed; not rerun here |
+| 10 | Superuser tampering is detected | `audit_tamper_demo.sql` and verifier | Previously passed; not rerun here |
+| 11 | Short break-glass justification is rejected | SQL/API checks | Previously passed; not rerun here |
+| 12 | Expired override grants no access | Access function negative test | Previously passed at SQL-function level; not rerun here |
+| 13 | New approved version resets acknowledgment | Version-specific acknowledgment joins and notification trigger | Implemented; dedicated version-reset assertion still needed |
+| 14 | Circular dependency analysis terminates | Recursive CTE and dashboard dependency test | Previously passed; not rerun here |
+| 15 | Expired-only mapped policy remains a gap | `push_constraints.sql` rollback fixture | Added; not run here |
+| 16 | Semantic query finds sharps policy | Local embeddings and semantic route; `search.test.mjs` | Added; requires seeded Mongo content/model and was not run here |
 
-## Backend integration tests
+## Run the full database-backed checks
 
-The passing Jest suite covers:
+1. Copy `.env.example` to `.env`, set local-only credentials, and start Docker Desktop.
+2. Run `docker compose up -d`, then `npm run db:apply`.
+3. Run `npm run db:mongo:indexes`, `npm run db:mongo:seed`, and `npm run db:embeddings`.
+4. Run `npm run test --workspace backend` and `npm run db:test`.
+5. Capture the real UI states listed in `SCREENSHOTS.md` and update each result after observing it.
 
-- Database health reporting, generic failed-login responses, session login/logout, user administration permissions, and hiding password hashes.
-- Document upload, duplicate checksum rejection, permission-filtered document lists, file download, maker-checker approval, version superseding, audit log listing, and audit verification.
-- Dashboard data response and permission restrictions.
-- Dependency graph and impact traversal across a three-document cycle.
-- Notification inbox authentication, user isolation, and read-state updates.
-- Break-glass request, temporary access grant, flagged audit row, Admin notifications, Admin review, and access removal after review.
-
-Some integration fixtures are intentionally retained because access logs are append-only and foreign keys prevent deleting referenced records. SQL negative-test fixtures run inside transactions and roll back.
-
-## Blueprint test matrix (16 cases)
-
-| # | Scenario | Evidence and status |
-|---:|---|---|
-| 1 | Wrong-password login is generic | **Passed.** `backend/test/auth.test.mjs`; compares unknown-user and wrong-password responses. |
-| 2 | SQL injection string in search | **Not verified.** There is no automated injection test. Current keyword search escapes Mongo regex metacharacters and binds SQL values, but that is not a substitute for the rubric test. |
-| 3 | Nurse cannot find Admin-only document in search | **Partially implemented, not verified.** The search SQL selects candidates through `fn_accessible_document_ids`; no search-specific nurse visibility test currently runs. The document-library visibility check is separate. |
-| 4 | Upload identical file twice | **Passed.** `backend/test/documents.test.mjs` expects the second upload to return 409. |
-| 5 | Uploader cannot approve own version | **Passed.** SQL CHECK negative test in `core_constraints.sql`; API test also confirms the uploader is denied. |
-| 6 | Expiry date before effective date | **Passed.** `core_constraints.sql` expects a CHECK violation. |
-| 7 | Approving version 2 supersedes version 1 and updates current pointer | **Passed.** `core_constraints.sql` and `backend/test/documents.test.mjs`. |
-| 8 | Forced failure mid-upload compensates Mongo writes | **Not implemented / not tested.** `backend/src/services/ingest.ts` is still an explicit stub that writes nothing to MongoDB; its compensation function is a no-op. |
-| 9 | Application cannot UPDATE or DELETE access logs | **Passed.** `core_constraints.sql` verifies trigger rejection and checks the runtime role grants. |
-| 10 | Superuser tampering is detected and first broken id reported | **Passed.** `audit_tamper_demo.sql` and the tamper section of `core_constraints.sql`; the tamper rehearsal ran successfully. |
-| 11 | Five-character break-glass justification is rejected | **Passed.** SQL CHECK negative test and API validation test. |
-| 12 | Expired override no longer grants access | **Passed at SQL-function level.** `core_constraints.sql` checks `fn_accessible_document_ids` after expiry and runs `fn_expire_overrides`; a full HTTP read/search-after-expiry scenario is not separately tested. |
-| 13 | New approved version makes assigned users pending again | **Not verified.** Push SQL tests require demo seed data and stop before their assertions in the current database. |
-| 14 | Circular document references terminate during impact analysis | **Passed.** `backend/test/dashboard-dependencies.test.mjs` creates a three-node cycle and asserts graph/impact endpoints return. |
-| 15 | Mandatory control backed only by an expired document appears as a gap | **Not verified.** The current Push SQL test fails at its seed prerequisite; it does not reach this rubric scenario in the observed run. |
-| 16 | Semantic search finds needle-stick policy for “needle prick injury” | **Not implemented.** The current `/api/search` route accepts keyword mode only; the ingestion and embedding worker remain a stub. |
-
-## Fresh database guidance
-
-For a deliberate disposable local database, `npm run db:rebuild-test` drops the project's current application schema, applies migrations, and runs tests. It is destructive to data in that database; use it only when the local `docuguard` schema is safe to rebuild. The test run described above used `npm run db:test` and did not reset the schema.
+`npm run db:rebuild-test` drops application schema objects and replaces them. Use it only with a dedicated disposable project database.

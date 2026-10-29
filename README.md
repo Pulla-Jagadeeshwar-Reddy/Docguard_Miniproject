@@ -68,6 +68,15 @@ Uploaded PDF and DOCX files are extracted into MongoDB and divided into overlapp
 - If a port is busy, stop the conflicting service or change its published port in Compose and the matching connection variable.
 - Check database startup with `docker compose ps` and `docker compose logs postgres mongo`.
 
+## Project documentation
+
+- [`docs/QUERIES.md`](docs/QUERIES.md) — important SQL and MongoDB queries.
+- [`docs/NOSQL_VECTOR.md`](docs/NOSQL_VECTOR.md) — MongoDB collections, vector search, and hybrid ranking.
+- [`docs/RUBRIC_CHECKLIST.md`](docs/RUBRIC_CHECKLIST.md) — rubric evidence and demo order.
+- [`docs/TESTING.md`](docs/TESTING.md) — verification status and the full test matrix.
+- [`docs/DEMO_GUIDE.md`](docs/DEMO_GUIDE.md) — Pull and Push demo walkthrough.
+- [`docs/PHASE7_PUSH.md`](docs/PHASE7_PUSH.md) — Push finish record and outstanding local verification.
+
 ## Project status
 
-Pull has completed Phases 1–7. Push Phases 1–6 (database, ingestion/embeddings, search/similarity, search UI/analytics, acknowledgments, and regulatory coverage) are implemented; Push Phase 7 finish work remains. See [`docs/WORK_SPLIT.md`](docs/WORK_SPLIT.md) and [`docs/TESTING.md`](docs/TESTING.md).
+Pull has completed Phases 1–7. Push implementation and documentation for Phases 1–7 are committed on the phase branches. Database-backed verification and live screenshots remain pending because Docker Desktop is unavailable in this workspace; see [`docs/TESTING.md`](docs/TESTING.md).
