@@ -45,6 +45,12 @@
 - Acknowledgment rows are scoped to the signed-in user and the assignment's current version. Duplicate submissions are idempotent; a newly approved version naturally returns the assignment to pending through the version-specific join.
 - The Admin completion chart uses the department anti-join view. Ineligible or inactive users are not included in completion denominators.
 
+## Phase 6
+
+- Coverage management is Admin-only. Mapping writes are idempotent and the coverage matrix reads the database views so an expired policy cannot count as coverage.
+- Regulation scores include mandatory controls only; a regulation with no mandatory controls reports 0.00 rather than 100%.
+- The standard seeded standards/control names are explicitly illustrative educational mappings, not compliance advice or legal interpretations.
+
 ## Phase 3
 
 - Push's MongoDB extraction/embedding service is not present on this branch yet. `backend/src/services/ingest.ts` is the explicitly temporary work-split stub: it returns clearly labeled synthetic Mongo references and no chunks, and compensation/embedding queue methods are no-ops until Push replaces them. The UI marks document text extraction/search indexing as pending. Re-upload policies after Push's ingestion service is integrated so real Mongo content and chunks are created.

@@ -90,4 +90,10 @@ SELECT verify_audit_chain();
 2. Sign in as Admin and open **Acknowledgments**. Assign an approved policy to a role or department and show the updated completion table and department chart.
 3. Explain that acknowledgment rows point to a version id, so approving a new version makes that assignment pending again.
 
+## Push — regulatory gap analysis (about 2 minutes)
+
+1. Sign in as Admin and open **Coverage**. Compare a regulation's mandatory coverage score with its control-level matrix.
+2. Show a mandatory gap and explain that a mapping only counts when a policy has an active, approved, unexpired current version.
+3. Use the Admin form to map an approved synthetic policy to a control, then refresh the matrix and score. Emphasize that the example mappings are illustrative.
+
 Before the demo, apply SQL migrations, run `npm run db:mongo:indexes`, `npm run db:mongo:seed`, and `npm run db:embeddings`. The first embedding run downloads the local model. Do not use real patient documents; all supplied policies are fictional examples.
