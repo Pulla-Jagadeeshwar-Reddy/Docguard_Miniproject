@@ -13,6 +13,10 @@
     "db:rebuild": "powershell -NoProfile -ExecutionPolicy Bypass -File database/postgres/run_all.ps1 -Reset",
     "db:auth": "powershell -NoProfile -ExecutionPolicy Bypass -File database/postgres/run_all.ps1 -AuthOnly",
     "db:documents": "powershell -NoProfile -ExecutionPolicy Bypass -File database/postgres/run_all.ps1 -DocumentsOnly",
+    "db:mongo:indexes": "node database/mongo/indexes.js",
+    "db:mongo:seed": "node database/mongo/seed.js",
+    "db:mongo:analytics": "node database/mongo/aggregations.js",
+    "db:embeddings": "npm run embeddings:seed --workspace backend",
     "db:test": "powershell -NoProfile -ExecutionPolicy Bypass -File database/postgres/run_all.ps1 -TestOnly",
     "db:rebuild-test": "powershell -NoProfile -ExecutionPolicy Bypass -File database/postgres/run_all.ps1 -Reset -Test"
   },

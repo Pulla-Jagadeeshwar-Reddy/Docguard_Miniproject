@@ -9,6 +9,7 @@ import { env } from "../config/env.js";
 import { requireAuth, requirePermission, requireRole } from "../middleware/auth.js";
 import { deleteIngested, ingestFile, ingestionIsTemporaryStub, linkIngested, queueEmbedding } from "../services/ingest.js";
 import { logAccess } from "../services/audit.js";
+import { rebuildSimilarDocuments } from "../services/similar-documents.js";
 
 const documentsRouter = Router();
 const versionsRouter = Router();
@@ -267,7 +268,9 @@ documentsRouter.get("/:id", async (request, response, next) => {
                 WHERE ingest_version.version_id = COALESCE(
                   d.current_version_id,
                   (SELECT v.version_id FROM document_versions v WHERE v.document_id = d.document_id ORDER BY v.version_number DESC LIMIT 1)
-                ) AND ingest_version.mongo_content_id LIKE 'stub-%'
+                ) AND NOT EXISTS (
+                  SELECT 1 FROM document_chunks indexed_chunk WHERE indexed_chunk.version_id = ingest_version.version_id
+                )
               ) AS "ingestionPending"
        FROM documents d
        JOIN document_categories c ON c.category_id = d.category_id
@@ -338,6 +341,8 @@ documentsRouter.post("/versions/:versionId/approve", requirePermission("DOCUMENT
     await client.query("COMMIT");
     try { await queueEmbedding(approved.version_id); }
     catch { console.warn("DocuGuard approved-version embedding refresh failed; retry by reprocessing the version"); }
+    try { await rebuildSimilarDocuments(); }
+    catch { console.warn("DocuGuard similarity refresh failed; it will retry on schedule"); }
     response.json({ versionId: approved.version_id, versionNumber: approved.version_number, status: approved.version_status });
   } catch (error) {
     try { await client.query("ROLLBACK"); } catch { /* Transaction may already be closed. */ }

@@ -198,6 +198,15 @@ function getExtractor(): Promise<FeatureExtractor> {
   return extractor;
 }
 
+export async function embedText(text: string): Promise<number[]> {
+  const vectors = (await (await getExtractor())(text, { pooling: "mean", normalize: true })).tolist();
+  const vector = vectors[0];
+  if (!vector || vector.length !== 384 || vector.some(value => !Number.isFinite(value))) {
+    throw new Error("Embedding model must return exactly 384 finite values");
+  }
+  return vector;
+}
+
 export async function queueEmbedding(versionId: number): Promise<void> {
   await mongoClient.connect();
   const db = mongoClient.db(env.mongoDb);
@@ -209,11 +218,7 @@ export async function queueEmbedding(versionId: number): Promise<void> {
     await client.query("BEGIN");
     await client.query("DELETE FROM document_chunks WHERE version_id = $1", [versionId]);
     for (const chunk of chunks) {
-      const vectors = (await embed(String(chunk.text), { pooling: "mean", normalize: true })).tolist();
-      const vector = vectors[0];
-      if (!vector || vector.length !== 384 || vector.some(value => !Number.isFinite(value))) {
-        throw new Error("Embedding model must return exactly 384 finite values");
-      }
+      const vector = await embedText(String(chunk.text));
       await client.query(
         `INSERT INTO document_chunks(version_id, chunk_index, mongo_chunk_id, embedding, tsv)
          VALUES ($1, $2, $3, $4::vector, to_tsvector('english', $5))`,
