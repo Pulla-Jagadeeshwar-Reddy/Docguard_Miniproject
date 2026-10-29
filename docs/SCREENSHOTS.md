@@ -26,3 +26,4 @@ Push should append its own search, acknowledgment, and coverage page states afte
 | 13 | `/dashboard` | Admin keyword analytics widget populated from MongoDB policy content. |
 | 14 | `/my-policies` | A pending assigned current version with the acknowledgment action. |
 | 15 | `/admin/acknowledgments` | Assignment form and department completion chart with seeded data. |
+| 16 | `/compliance/coverage` | Regulation score cards, a mandatory gap row, and the coverage matrix. |

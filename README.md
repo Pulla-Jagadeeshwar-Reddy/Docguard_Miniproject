@@ -70,4 +70,4 @@ Uploaded PDF and DOCX files are extracted into MongoDB and divided into overlapp
 
 ## Project status
 
-Pull has completed Phases 1–7. Push Phases 1–5 (database, ingestion/embeddings, search/similarity, search UI/analytics, and acknowledgments) are implemented; Push phases 6–7 remain in progress. See [`docs/WORK_SPLIT.md`](docs/WORK_SPLIT.md) and [`docs/TESTING.md`](docs/TESTING.md).
+Pull has completed Phases 1–7. Push Phases 1–6 (database, ingestion/embeddings, search/similarity, search UI/analytics, acknowledgments, and regulatory coverage) are implemented; Push Phase 7 finish work remains. See [`docs/WORK_SPLIT.md`](docs/WORK_SPLIT.md) and [`docs/TESTING.md`](docs/TESTING.md).

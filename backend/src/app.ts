@@ -17,6 +17,7 @@ import { overridesRouter } from "./routes/overrides.js";
 import { similarRouter } from "./routes/similar.js";
 import { analyticsRouter } from "./routes/analytics.js";
 import { acknowledgmentsRouter, assignmentsRouter, complianceRouter } from "./routes/acknowledgments.js";
+import { regulationsRouter, controlsRouter, mappingsRouter, coverageComplianceRouter } from "./routes/coverage.js";
 
 export const app = express();
 app.disable("x-powered-by");
@@ -48,6 +49,10 @@ app.use("/api/analytics", analyticsRouter);
 app.use("/api/acknowledgments", acknowledgmentsRouter);
 app.use("/api/assignments", assignmentsRouter);
 app.use("/api/compliance", complianceRouter);
+app.use("/api/regulations", regulationsRouter);
+app.use("/api/controls", controlsRouter);
+app.use("/api/control-map", mappingsRouter);
+app.use("/api/compliance", coverageComplianceRouter);
 app.use("/api/overrides", overridesRouter);
 
 app.get("/health", async (_request, response) => {
